@@ -1,1 +1,1 @@
-# cs460-swe
+# CS 460 - Software Engineering
