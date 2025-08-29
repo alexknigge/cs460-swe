@@ -3,7 +3,7 @@
 public class StatusPort {
     private IoPort port;
 
-    public void statusPort(String connector) {
+    public StatusPort(String connector) {
         this.port = new IoPort(connector);
     }
 
