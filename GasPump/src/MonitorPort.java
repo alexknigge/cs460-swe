@@ -1,3 +1,5 @@
+/* class to represent the Monitor port specilization */
+
 public class MonitorPort {
 
     private IoPort port;
@@ -8,12 +10,12 @@ public class MonitorPort {
 
     // uses IoPort to send
     public void send(Message message) {
-
+        port.send(message);
     }
 
     // uses IoPort to read
-    public void read(){
-       // return port.read();
+    public String read(){
+        return port.read();
     }
 
 }

@@ -8,16 +8,17 @@ public class IoPort {
         this.connector = connector;
     }
 
-    public void send(Message messages) {
-
+    public Message send(Message messages) {
+        System.out.println("Sending " + messages.toString());
+        return messages;
     }
 
-    public String get() {
-
+    public Message get() {
+        return new Message("this is getting a message from: " + connector);
     }
 
     public String read() {
-
+        return "reading message from: " + connector;
     }
 }
 

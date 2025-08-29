@@ -1,3 +1,5 @@
+/* class to represent the Control Port specilization */
+
 public class ControlPort {
     private IoPort port;
 
@@ -6,7 +8,7 @@ public class ControlPort {
     }
 
     // only sends messages using IoPort
-    public void send(Message message){
-        // return port.send();
+    public Message send(Message message){
+        return port.send(message);
     }
 }
