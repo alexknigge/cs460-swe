@@ -1,4 +1,4 @@
-/* class to represent the Communicator specilization */
+/* class to represent the Communicator specialization */
 
 public class CommPort {
     private IoPort port;
@@ -8,12 +8,12 @@ public class CommPort {
     }
 
     // uses IoPort to send
-    public Message send(Message message) {
+    public Message sendMessage(Message message) {
         return port.send(message);
     }
 
     // uses IoPort to get
-    public Message get(){
+    public Message getMessage(){
         return port.get();
     }
 }

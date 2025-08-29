@@ -1,4 +1,4 @@
-/* class to represent the Status specilization */
+/* class to represent the Status specialization */
 
 public class StatusPort {
     private IoPort port;

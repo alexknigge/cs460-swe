@@ -1,4 +1,4 @@
-/* This class represents an object that helps build the specilizations. */
+/* This class represents an object that helps build the specializations. */
 
 public class IoPort {
     // represents the network ports
@@ -9,7 +9,7 @@ public class IoPort {
     }
 
     public Message send(Message messages) {
-        System.out.println("Sending " + messages.toString());
+        System.out.println("Sending: " + messages.getContent());
         return messages;
     }
 
