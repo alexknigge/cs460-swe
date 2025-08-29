@@ -9,8 +9,8 @@ public class MonitorPort {
     }
 
     // uses IoPort to send
-    public void sendMessage(Message message) {
-        port.send(message);
+    public Message sendMessage(Message message) {
+        return port.send(message);
     }
 
     // uses IoPort to read

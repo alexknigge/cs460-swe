@@ -42,7 +42,7 @@ public class TestIoPort {
         System.out.println("Testing MonitorPort");
         MonitorPort screen = new MonitorPort("screen");
         // test send
-        Message screenSend = pump.sendMessage(new Message("Screen is being tested"));
+        Message screenSend = screen.sendMessage(new Message("Screen is being tested"));
         System.out.println("Monitor Port sent -> " + screenSend.getContent());
         // test read
         String screenReply = screen.readMessage();
