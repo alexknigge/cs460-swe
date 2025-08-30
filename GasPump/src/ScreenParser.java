@@ -14,32 +14,22 @@ import java.util.Map;
  * A helper class to encapsulate all message parsing and UI node creation logic.
  */
 public class ScreenParser {
+    // --- Centralized Style Constants ---
+    public static final String STYLE_BUTTON_DEFAULT = "-fx-background-color: #E0E0E0; -fx-border-color: #808080; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
+    public static final String STYLE_BUTTON_SELECTED = "-fx-background-color: #BEBEBE; -fx-border-color: #606060; -fx-border-width: 2; -fx-background-insets: 1; -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
+    public static final char BUTTON_TYPE_MUTUALLY_EXCLUSIVE = 'm';
+    private static final String STYLE_BG_PURPLE = "-fx-background-color: #800080;";
+    private static final String STYLE_BG_RED = "-fx-background-color: #FF0000;";
+    private static final String STYLE_BG_GREEN = "-fx-background-color: #008000;";
+    private static final String STYLE_BG_BLUE = "-fx-background-color: #0000FF;";
     // --- Style and Layout Constants ---
-    private static final int FONT_SIZE_SMALL = 1;
-    private static final int FONT_SIZE_MEDIUM = 2;
-    private static final int FONT_SIZE_LARGE = 3;
-    private static final int STYLE_REGULAR = 1;
-    private static final int STYLE_BOLD = 2;
-    private static final int STYLE_ITALIC = 3;
-    private static final int COLOR_DEFAULT = 0;
-    private static final int COLOR_PURPLE = 1;
-    private static final int COLOR_RED = 2;
-    private static final int COLOR_GREEN = 3;
-    private static final int COLOR_BLUE = 4;
+    private static final int FONT_SIZE_SMALL = 1, FONT_SIZE_MEDIUM = 2, FONT_SIZE_LARGE = 3;
+    private static final int STYLE_REGULAR = 1, STYLE_BOLD = 2, STYLE_ITALIC = 3;
+    private static final int COLOR_DEFAULT = 0, COLOR_PURPLE = 1, COLOR_RED = 2, COLOR_GREEN = 3, COLOR_BLUE = 4;
 
-    /**
-     * A record to hold the results of parsing a screen message.
-     */
-    public record ScreenLayout(Map<String, Node> textFields, Map<String, Node> buttons) {}
-
-    /**
-     * Parses a full message string and returns a ScreenLayout object containing the generated UI nodes.
-     * @param message The raw message string from the input.
-     * @return A ScreenLayout object.
-     */
     public ScreenLayout parse(String message) {
         Map<String, Node> textFields = new HashMap<>();
-        Map<String, Node> buttons = new HashMap<>();
+        Map<String, ButtonInfo> buttons = new HashMap<>();
         String trimmedMessage = message.substring(0, message.length() - 2);
         String[] commands = trimmedMessage.split(";");
 
@@ -74,19 +64,16 @@ public class ScreenParser {
         }
     }
 
-    private void parseAndCreateButton(String command, Map<String, Node> buttons) {
+    private void parseAndCreateButton(String command, Map<String, ButtonInfo> buttons) {
         try {
             String[] parts = command.substring(2).split("/");
             if (parts.length < 2) return;
             String cellId = parts[0];
+            char type = parts[1].charAt(0);
             Button button = new Button();
             button.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-            button.setStyle("-fx-background-color: #E0E0E0; -fx-border-color: #808080; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);");
-            button.setOnAction(event -> {
-                System.out.print("b:" + cellId + ";//");
-                System.out.flush();
-            });
-            buttons.put(cellId, button);
+            button.setStyle(STYLE_BUTTON_DEFAULT);
+            buttons.put(cellId, new ButtonInfo(button, type));
         } catch (Exception e) {
             System.err.println("Failed to parse button command: " + command);
         }
@@ -95,19 +82,24 @@ public class ScreenParser {
     private void applyFont(Label label, int size, String styleStr) {
         double fontSize;
         switch (size) {
-            case FONT_SIZE_SMALL:  fontSize = 14; break;
-            case FONT_SIZE_LARGE:  fontSize = 30; break;
-            case FONT_SIZE_MEDIUM: default: fontSize = 20; break;
+            case FONT_SIZE_SMALL:
+                fontSize = 14;
+                break;
+            case FONT_SIZE_LARGE:
+                fontSize = 30;
+                break;
+            case FONT_SIZE_MEDIUM:
+            default:
+                fontSize = 20;
+                break;
         }
         FontWeight weight = FontWeight.NORMAL;
         FontPosture posture = FontPosture.REGULAR;
         if (!styleStr.contains(String.valueOf(STYLE_REGULAR))) {
-            if (styleStr.contains(String.valueOf(STYLE_BOLD))) {
+            if (styleStr.contains(String.valueOf(STYLE_BOLD)))
                 weight = FontWeight.BOLD;
-            }
-            if (styleStr.contains(String.valueOf(STYLE_ITALIC))) {
+            if (styleStr.contains(String.valueOf(STYLE_ITALIC)))
                 posture = FontPosture.ITALIC;
-            }
         }
         label.setFont(Font.font("sans-serif", weight, posture, fontSize));
     }
@@ -115,12 +107,36 @@ public class ScreenParser {
     private void applyBackgroundColor(StackPane pane, int color) {
         String style = "-fx-padding: 5;";
         switch (color) {
-            case COLOR_PURPLE: style += "-fx-background-color: #800080;"; break;
-            case COLOR_RED:    style += "-fx-background-color: #FF0000;"; break;
-            case COLOR_GREEN:  style += "-fx-background-color: #008000;"; break;
-            case COLOR_BLUE:   style += "-fx-background-color: #0000FF;"; break;
-            case COLOR_DEFAULT: default: break;
+            case COLOR_PURPLE:
+                style += STYLE_BG_PURPLE;
+                break;
+            case COLOR_RED:
+                style += STYLE_BG_RED;
+                break;
+            case COLOR_GREEN:
+                style += STYLE_BG_GREEN;
+                break;
+            case COLOR_BLUE:
+                style += STYLE_BG_BLUE;
+                break;
+            case COLOR_DEFAULT:
+            default:
+                break;
         }
         pane.setStyle(style);
     }
+
+    /**
+     * A record to hold a created button and its protocol-defined type.
+     */
+    public record ButtonInfo(Button button, char type) {
+    }
+
+    /**
+     * A record to hold the results of parsing a screen message.
+     */
+    public record ScreenLayout(Map<String, Node> textFields,
+                               Map<String, ButtonInfo> buttons) {
+    }
 }
+
