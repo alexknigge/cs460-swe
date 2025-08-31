@@ -1,10 +1,10 @@
 /* This class represents an object that helps build the specializations. */
 
-public class IoPort {
+public class ioPort {
     // represents the network ports
     private String connector;
 
-    public IoPort(String connector) {
+    public ioPort(String connector) {
         this.connector = connector;
     }
 

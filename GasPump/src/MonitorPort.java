@@ -2,10 +2,10 @@
 
 public class MonitorPort {
 
-    private IoPort port;
+    private ioPort port;
 
     public MonitorPort(String connector) {
-        this.port = new IoPort(connector);
+        this.port = new ioPort(connector);
     }
 
     // uses IoPort to send

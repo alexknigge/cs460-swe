@@ -1,10 +1,10 @@
 /* class to represent the Control Port specialization */
 
 public class ControlPort {
-    private IoPort port;
+    private ioPort port;
 
     public ControlPort(String connector) {
-        this.port = new IoPort(connector);
+        this.port = new ioPort(connector);
     }
 
     // only sends messages using IoPort

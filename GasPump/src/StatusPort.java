@@ -1,10 +1,10 @@
 /* class to represent the Status specialization */
 
 public class StatusPort {
-    private IoPort port;
+    private ioPort port;
 
     public StatusPort(String connector) {
-        this.port = new IoPort(connector);
+        this.port = new ioPort(connector);
     }
 
     // only uses IoPort to read
