@@ -4,10 +4,12 @@ package Communicator;
 import Server.ioPort;
 import Server.Message;
 
+import java.io.IOException;
+
 public class CommPort {
     private ioPort port;
 
-    public CommPort(String connector) {
+    public CommPort(String connector) throws IOException {
         this.port = new ioPort(connector);
     }
 

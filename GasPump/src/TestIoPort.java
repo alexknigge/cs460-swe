@@ -7,8 +7,10 @@ import Server.Message;
 import Server.ioPort;
 import Status.StatusPort;
 
+import java.io.IOException;
+
 public class TestIoPort {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         ioPort ioport = new ioPort("Test Connector");
 
         // testing the IoPort
