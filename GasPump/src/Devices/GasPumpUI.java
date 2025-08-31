@@ -18,7 +18,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A JavaFX application that serves as a functional mockup of a gas pump's digital touch screen.
@@ -41,12 +40,6 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
         commManager = new ScreenCommunicationManager(this);
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
-        FlowMeter flowMeter = new FlowMeter(
-                msg -> Platform.runLater(() -> processScreenMessage(msg)),
-                0.5, 3.999
-        );
-        flowMeter.initLayout();
-        flowMeter.start();
         Scene scene = new Scene(gridPane, 400, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -80,7 +73,7 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
         List<Button> mutuallyExclusiveButtons = layout.buttons().values().stream()
                 .filter(info -> info.type() == ScreenParser.BUTTON_TYPE_MUTUALLY_EXCLUSIVE)
                 .map(ScreenParser.ButtonInfo::button)
-                .collect(Collectors.toList());
+                .toList();
 
         layout.buttons().forEach((cellId, info) -> {
             Button currentButton = info.button();

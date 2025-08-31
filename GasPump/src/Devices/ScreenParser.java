@@ -82,19 +82,11 @@ public class ScreenParser {
     }
 
     private void applyFont(Label label, int size, String styleStr) {
-        double fontSize;
-        switch (size) {
-            case FONT_SIZE_SMALL:
-                fontSize = 14;
-                break;
-            case FONT_SIZE_LARGE:
-                fontSize = 30;
-                break;
-            case FONT_SIZE_MEDIUM:
-            default:
-                fontSize = 20;
-                break;
-        }
+        double fontSize = switch (size) {
+            case FONT_SIZE_SMALL -> 14;
+            case FONT_SIZE_LARGE -> 30;
+            default -> 20;
+        };
         FontWeight weight = FontWeight.NORMAL;
         FontPosture posture = FontPosture.REGULAR;
         if (!styleStr.contains(String.valueOf(STYLE_REGULAR))) {
