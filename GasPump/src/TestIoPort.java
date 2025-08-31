@@ -2,7 +2,7 @@
 
 public class TestIoPort {
     public static void main(String[] args) {
-        IoPort ioport = new IoPort("Test Connector");
+        ioPort ioport = new ioPort("Test Connector");
 
         // testing the IoPort
         System.out.println("Test IoPort");

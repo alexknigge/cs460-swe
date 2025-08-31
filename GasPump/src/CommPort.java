@@ -1,10 +1,10 @@
 /* class to represent the Communicator specialization */
 
 public class CommPort {
-    private IoPort port;
+    private ioPort port;
 
     public CommPort(String connector) {
-        this.port = new IoPort(connector);
+        this.port = new ioPort(connector);
     }
 
     // uses IoPort to send
