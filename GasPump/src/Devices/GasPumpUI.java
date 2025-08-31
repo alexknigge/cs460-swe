@@ -1,8 +1,5 @@
 package Devices;
 
-import Devices.FlowMeter;
-import Devices.ScreenCommunicationManager;
-import Devices.ScreenParser;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
