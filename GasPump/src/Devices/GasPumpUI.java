@@ -52,7 +52,7 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
     @Override
     public void onCommunicationError(Exception e) {
         Platform.runLater(() -> {
-            Label errorLabel = new Label("FATAL: Communication Error:\n" + e.getMessage());
+            Label errorLabel = new Label("Communication Error:\n" + e.getMessage());
             errorLabel.setTextFill(Color.RED);
             gridPane.getChildren().clear();
             gridPane.add(new StackPane(errorLabel), 0, 0, 4, NUM_ROWS);
