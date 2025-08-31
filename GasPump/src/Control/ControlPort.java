@@ -1,4 +1,6 @@
-/* class to represent the Control Port specialization */
+package Control;/* class to represent the Control Port specialization */
+
+import Server.*;
 
 public class ControlPort {
     private ioPort port;

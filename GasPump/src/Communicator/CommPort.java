@@ -1,4 +1,8 @@
+package Communicator;
 /* class to represent the Communicator specialization */
+
+import Server.ioPort;
+import Server.Message;
 
 public class CommPort {
     private ioPort port;

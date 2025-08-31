@@ -1,3 +1,5 @@
+package Devices;
+
 import java.text.DecimalFormat;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -16,7 +18,7 @@ public class FlowMeter {
     private static final DecimalFormat $ = new DecimalFormat("$0.000");
 
     /**
-     * Constructs a FlowMeter instance.
+     * Constructs a Devices.FlowMeter instance.
      *
      * @param emit A Consumer that receives display messages (typically for UI updates).
      * @param gps The flow rate in gallons per second.

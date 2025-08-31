@@ -1,3 +1,5 @@
+package Devices;
+
 import java.io.InputStreamReader;
 import java.io.Reader;
 

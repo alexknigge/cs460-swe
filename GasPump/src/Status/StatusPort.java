@@ -1,3 +1,6 @@
+package Status;
+import Server.*;
+
 /* class to represent the Status specialization */
 
 public class StatusPort {

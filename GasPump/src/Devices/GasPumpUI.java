@@ -1,3 +1,8 @@
+package Devices;
+
+import Devices.FlowMeter;
+import Devices.ScreenCommunicationManager;
+import Devices.ScreenParser;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -17,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * A JavaFX application that serves as a functional mockup of a gas pump's digital touch screen.
- * It connects the ScreenParser and ScreenCommunicationManager to render a UI and handle interactions.
+ * It connects the Devices.ScreenParser and Devices.ScreenCommunicationManager to render a UI and handle interactions.
  */
 public class GasPumpUI extends Application implements ScreenCommunicationManager.MessageListener {
 

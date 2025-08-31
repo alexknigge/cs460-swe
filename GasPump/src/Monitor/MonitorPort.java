@@ -1,3 +1,6 @@
+package Monitor;
+import Server.*;
+
 /* class to represent the Monitor port specialization */
 
 public class MonitorPort {

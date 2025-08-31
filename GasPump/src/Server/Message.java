@@ -1,3 +1,5 @@
+package Server;
+
 /* Class to handle messages across devices */
 public class Message {
     public String content;

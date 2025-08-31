@@ -1,5 +1,12 @@
 // class to test the IoPort and Messages
 
+import Communicator.CommPort;
+import Control.ControlPort;
+import Monitor.MonitorPort;
+import Server.Message;
+import Server.ioPort;
+import Status.StatusPort;
+
 public class TestIoPort {
     public static void main(String[] args) {
         ioPort ioport = new ioPort("Test Connector");
@@ -20,8 +27,8 @@ public class TestIoPort {
         System.out.println("Test read -> "+ str);
         System.out.println();
 
-        // test CommPort
-        System.out.println("Testing CommPort");
+        // test Communicator.CommPort
+        System.out.println("Testing Communicator.CommPort");
         CommPort network = new CommPort("ethernet");
         // test send
         network.sendMessage(new Message("the price of gas is $3.00"));
@@ -30,16 +37,16 @@ public class TestIoPort {
         System.out.println("Communication get -> " + reply.getContent());
         System.out.println();
 
-        // test ControlPort
-        System.out.println("Testing ControlPort");
-        ControlPort  pump = new ControlPort("pump");
+        // test Control.ControlPort
+        System.out.println("Testing Control.ControlPort");
+        ControlPort pump = new ControlPort("pump");
         // test send
         Message pumpSend = pump.sendMessage(new Message("pump is on"));
         System.out.println("Control Port sent -> " + pumpSend.getContent());
         System.out.println();
 
-        // test MonitorPort
-        System.out.println("Testing MonitorPort");
+        // test Monitor.MonitorPort
+        System.out.println("Testing Monitor.MonitorPort");
         MonitorPort screen = new MonitorPort("screen");
         // test send
         Message screenSend = screen.sendMessage(new Message("Screen is being tested"));
@@ -50,7 +57,7 @@ public class TestIoPort {
         System.out.println();
 
         // test Status Port
-        System.out.println("Testing StatusPort");
+        System.out.println("Testing Status.StatusPort");
         StatusPort status = new StatusPort("status");
         String statusReply = status.readStatus();
         System.out.println("Status Port read -> " + statusReply);
