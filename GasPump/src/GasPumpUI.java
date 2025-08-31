@@ -36,6 +36,12 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
         commManager = new ScreenCommunicationManager(this);
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
+        FlowMeter flowMeter = new FlowMeter(
+                msg -> Platform.runLater(() -> processScreenMessage(msg)),
+                0.5, 3.999
+        );
+        flowMeter.initLayout();
+        flowMeter.start();
         Scene scene = new Scene(gridPane, 400, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
