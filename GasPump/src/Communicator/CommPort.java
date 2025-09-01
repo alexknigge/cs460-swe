@@ -5,21 +5,24 @@ import Server.ioPort;
 import Server.Message;
 
 import java.io.IOException;
+import java.net.Socket;
 
 public class CommPort {
     private ioPort port;
+    private final Socket socket;
 
-    public CommPort(String connector) throws IOException {
-        this.port = new ioPort(connector);
+    public CommPort(Socket socket) throws IOException {
+        this.socket = socket;
+        this.port = new ioPort(this.socket);
     }
 
     // uses IoPort to send
-    public Message sendMessage(Message message) {
-        return port.send(message);
+    public void sendMessage(Message message) throws IOException {
+        port.send(message);
     }
 
     // uses IoPort to get
     public Message getMessage(){
-        return port.get();
+        return new Message(port.get());
     }
 }

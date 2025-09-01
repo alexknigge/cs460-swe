@@ -10,6 +10,7 @@ import Status.StatusPort;
 import java.io.IOException;
 
 public class TestIoPort {
+    /*
     public static void main(String[] args) throws IOException {
         ioPort ioport = new ioPort("Test Connector");
 
@@ -64,5 +65,6 @@ public class TestIoPort {
         String statusReply = status.readStatus();
         System.out.println("Status Port read -> " + statusReply);
         System.out.println();
+        */
     }
-}
+

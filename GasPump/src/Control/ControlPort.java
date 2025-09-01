@@ -3,16 +3,17 @@ package Control;/* class to represent the Control Port specialization */
 import Server.*;
 
 import java.io.IOException;
+import java.net.Socket;
 
 public class ControlPort {
     private ioPort port;
 
-    public ControlPort(String connector) throws IOException {
-        this.port = new ioPort(connector);
+    public ControlPort(Socket socket) throws IOException {
+        this.port = new ioPort(socket);
     }
 
     // only sends messages using IoPort
-    public Message sendMessage(Message message){
-        return port.send(message);
+    public void sendMessage(Message message) throws IOException {
+        port.send(message);
     }
 }

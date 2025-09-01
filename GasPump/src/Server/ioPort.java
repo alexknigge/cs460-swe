@@ -1,49 +1,43 @@
 package Server;/* This class represents an object that helps build the specializations. */
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.*;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ioPort {
-    // represents the network ports
-    private String connector;
-    private ServerSocket serverSocket;
-    public static final int PORT = 8080;
-    public static final String STOP_STRING = "stop";
-    DataInputStream dataInputStream;
+    private final Socket socket;
+    private final BufferedReader in;
+    private final PrintWriter out;
+    private final Queue<String> buffer = new LinkedList<>();
 
-    public ioPort(String connector) throws IOException {
-        serverSocket = new ServerSocket(PORT);
-        initConnections();
-        this.connector = connector;
+    public ioPort(Socket socket) throws IOException {
+        this.socket = socket;
+        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.out = new PrintWriter(socket.getOutputStream(), true);
     }
 
-    private void initConnections() throws IOException {
-        Socket clientSocket = serverSocket.accept();
-        dataInputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-        read();
-        close();
-    }
-
-    public Message send(Message messages) {
-        System.out.println("Sending: " + messages.getContent());
-        return messages;
-    }
-
-    public Message get() {
-        return new Message("this is getting a message from: " + connector);
+    // Called by Main to check if something is ready
+    public boolean hasMessage() throws IOException {
+        if (in.ready()) {
+            String line = in.readLine();
+            if (line != null) {
+                buffer.add(line);
+            }
+        }
+        return !buffer.isEmpty();
     }
 
     public String read() {
-        String line = "";
-        return "reading message from: " + connector;
+        return buffer.poll();
     }
 
-    private void close() throws IOException {
-        dataInputStream.close();
-        serverSocket.close();
+    public String get() {
+        return buffer.poll();
+    }
+
+    public void send(Message msg) {
+        out.println(msg);
     }
 }
 

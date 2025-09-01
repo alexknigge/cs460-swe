@@ -2,6 +2,7 @@ package Monitor;
 import Server.*;
 
 import java.io.IOException;
+import java.net.Socket;
 
 /* class to represent the Monitor port specialization */
 
@@ -9,17 +10,17 @@ public class MonitorPort {
 
     private ioPort port;
 
-    public MonitorPort(String connector) throws IOException {
-        this.port = new ioPort(connector);
+    public MonitorPort(Socket socket) throws IOException {
+        this.port = new ioPort(socket);
     }
 
     // uses IoPort to send
-    public Message sendMessage(Message message) {
-        return port.send(message);
+    public void sendMessage(Message message) throws IOException {
+        port.send(message);
     }
 
     // uses IoPort to read
-    public String readMessage() {
+    public String readMessage() throws IOException {
         return port.read();
     }
 
