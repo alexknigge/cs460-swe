@@ -1,43 +1,31 @@
-package Server;/* This class represents an object that helps build the specializations. */
+package Server;
+/* This class represents an object that helps build the specializations. */
 
-import java.io.*;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class ioPort {
-    private final Socket socket;
-    private final BufferedReader in;
-    private final PrintWriter out;
-    private final Queue<String> buffer = new LinkedList<>();
+    protected Queue<Message> buffer = new LinkedList<>();
 
-    public ioPort(Socket socket) throws IOException {
-        this.socket = socket;
-        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.out = new PrintWriter(socket.getOutputStream(), true);
+    // Put a message into the buffer
+    public void sendMessage(Message msg) {
+        buffer.add(msg);
     }
 
-    // Called by Main to check if something is ready
-    public boolean hasMessage() throws IOException {
-        if (in.ready()) {
-            String line = in.readLine();
-            if (line != null) {
-                buffer.add(line);
-            }
-        }
+    // Take a message (remove from buffer)
+    protected Message getMessage() {
+        return buffer.poll(); // returns null if empty
+    }
+
+    // Peek a message (do not remove from buffer)
+    protected Message readMessage() {
+        return buffer.peek();
+    }
+
+    // Check if there are messages
+    public boolean hasMessage() {
         return !buffer.isEmpty();
     }
-
-    public String read() {
-        return buffer.poll();
-    }
-
-    public String get() {
-        return buffer.poll();
-    }
-
-    public void send(Message msg) {
-        out.println(msg);
-    }
 }
+
 

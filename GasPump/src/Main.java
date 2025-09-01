@@ -1,60 +1,68 @@
+import Communicator.CommPort;
 import Devices.GasPumpUI;
+import Devices.Pump;
+import Devices.ScreenCommunicationManager;
 import Server.Message;
-import Server.ioPort;
+import javafx.application.Platform;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Scanner;
 
 // Main
-public class Main {
-    private final List<ioPort> ports = new ArrayList<>();
+public class Main extends CommPort {
+    private final Scanner scanner = new Scanner(System.in);
     public static void main(String[] args) throws Exception {
-        new Main().run();
-    }
+        Pump pump = new Pump();
+        ScreenCommunicationManager screenPort = new ScreenCommunicationManager();
 
-    /**
-     * The run method waits for each interface to start up and connect
-     * before moving on to the next
-     * The current order is Screen (UI) -> Pump
-     * @throws Exception
-     */
-    public void run() throws Exception {
-        ServerSocket server = new ServerSocket(5000);
+        // Inject the buffer into the UI before launching
+        GasPumpUI.setCommManager(screenPort);
 
-        System.out.println("Waiting for UI...");
-        Socket uiSocket = server.accept();
-        ioPort uiPort = new ioPort(uiSocket);
-        ports.add(uiPort);
-        System.out.println("UI connected.");
+        // Launch JavaFX UI on the main thread
+        new Thread(() -> GasPumpUI.launch(GasPumpUI.class)).start();
 
-        System.out.println("Waiting for Pump...");
-        Socket pumpSocket = server.accept();
-        ioPort pumpPort = new ioPort(pumpSocket);
-        ports.add(pumpPort);
-        System.out.println("Pump connected.");
+        // Wait a little for JavaFX to initialize
+        Thread.sleep(500); // adjust as needed
 
-        while (true) {
-            for (ioPort port : ports) {
-                if (port.hasMessage()) {
-                    String msg = port.read();
-                    System.out.println("Received: " + msg);
-                    routeMessage(msg, port, uiPort, pumpPort);
+        // Optional: send initial UI message
+        screenPort.sendMessage(new Message(
+                "t:01/s:3/f:2/c:0/Welcome!;" +
+                        "t:2/s:2/f:1/c:0/Select Grade;" +
+                        "t:4/s:2/f:1/c:3/87 Octane;b:4/m;" +
+                        "t:5/s:2/f:1/c:4/91 Octane;b:5/m;" +
+                        "t:8/s:1/f:3/c:2/Cancel;b:8/x;//",
+                1001
+        ));
+
+        // Start polling loop in a separate thread
+        Thread pollingThread = new Thread(() -> {
+            try {
+                while (true) {
+                    // Poll pump messages
+                    while (pump.hasMessage()) {
+                        Message msg = pump.read();
+                        pump.handleMessage(msg);
+                    }
+
+                    // Poll UI messages
+                    while (screenPort.hasMessage()) {
+                        Message msg = screenPort.get();
+
+                        Platform.runLater(() -> {
+                            GasPumpUI ui = GasPumpUI.getInstance();
+                            if (ui != null) {
+                                ui.processScreenMessage(msg);
+                            }
+                        });
+                    }
+
+                    Thread.sleep(50); // avoid busy-wait
                 }
+            } catch (InterruptedException e) {
+                System.out.println("Polling thread interrupted");
             }
-            Thread.sleep(50);
-        }
+        });
 
-    }
-
-    private void routeMessage(String msg, ioPort from, ioPort uiPort, ioPort pumpPort) {
-        if (from == uiPort) {
-            // Forward UI message to pump
-            pumpPort.send(new Message("UI->Pump: " + msg));
-        } else if (from == pumpPort) {
-            // Forward pump response to UI
-            uiPort.send(new Message("Pump->UI: " + msg));
-        }
+        pollingThread.setDaemon(true); // stops when main exits
+        pollingThread.start();
     }
 }

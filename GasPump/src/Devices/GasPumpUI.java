@@ -1,5 +1,6 @@
 package Devices;
 
+import Server.Message;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -20,48 +21,41 @@ import java.util.List;
  * A JavaFX application that serves as a functional mockup of a gas pump's digital touch screen.
  * It connects the Devices.ScreenParser and Devices.ScreenCommunicationManager to render a UI and handle interactions.
  */
-public class GasPumpUI extends Application implements ScreenCommunicationManager.MessageListener {
+public class GasPumpUI extends Application {
 
     private static final int NUM_ROWS = 5;
     private static final int NUM_COLS = 2;
     private final ScreenParser parser = new ScreenParser();
     private GridPane gridPane;
-    private ScreenCommunicationManager commManager;
+
+    private static ScreenCommunicationManager commManager;
+    private static GasPumpUI instance;
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    // Setter for Main to inject the port
+    public static void setCommManager(ScreenCommunicationManager manager) {
+        commManager = manager;
+    }
+
+    public static GasPumpUI getInstance() {
+        return instance;
+    }
+
     @Override
     public void start(Stage primaryStage) {
-        commManager = new ScreenCommunicationManager(this);
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
         Scene scene = new Scene(gridPane, 400, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        commManager.startListening();
     }
 
-    @Override
-    public void onMessageReceived(String message) {
-        Platform.runLater(() -> processScreenMessage(message));
-    }
-
-    @Override
-    public void onCommunicationError(Exception e) {
-        Platform.runLater(() -> {
-            Label errorLabel = new Label("Communication Error:\n" + e.getMessage());
-            errorLabel.setTextFill(Color.RED);
-            gridPane.getChildren().clear();
-            gridPane.add(new StackPane(errorLabel), 0, 0, 4, NUM_ROWS);
-        });
-    }
-
-    private void processScreenMessage(String message) {
+    public void processScreenMessage(Message message) {
         gridPane.getChildren().clear();
-        ScreenParser.ScreenLayout layout = parser.parse(message);
+        ScreenParser.ScreenLayout layout = parser.parse(message.toString());
 
         // --- Place Text Fields ---
         layout.textFields().forEach(this::placeTextNode);
@@ -78,7 +72,7 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
             // Set a single action handler for all buttons
             currentButton.setOnAction(event -> {
                 // Always send the message
-                commManager.sendMessage("b:" + cellId);
+                commManager.sendMessage(new Message("b:" + cellId, 1001));
 
                 // If the button is mutually exclusive, handle the style change
                 if (info.type() == ScreenParser.BUTTON_TYPE_MUTUALLY_EXCLUSIVE) {
