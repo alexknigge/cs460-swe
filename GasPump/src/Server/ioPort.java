@@ -1,49 +1,31 @@
-package Server;/* This class represents an object that helps build the specializations. */
+package Server;
+/* This class represents an object that helps build the specializations. */
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ioPort {
-    // represents the network ports
-    private String connector;
-    private ServerSocket serverSocket;
-    public static final int PORT = 8080;
-    public static final String STOP_STRING = "stop";
-    DataInputStream dataInputStream;
+    protected Queue<Message> buffer = new LinkedList<>();
 
-    public ioPort(String connector) throws IOException {
-        serverSocket = new ServerSocket(PORT);
-        initConnections();
-        this.connector = connector;
+    // Put a message into the buffer
+    public void sendMessage(Message msg) {
+        buffer.add(msg);
     }
 
-    private void initConnections() throws IOException {
-        Socket clientSocket = serverSocket.accept();
-        dataInputStream = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-        read();
-        close();
+    // Take a message (remove from buffer)
+    protected Message getMessage() {
+        return buffer.poll(); // returns null if empty
     }
 
-    public Message send(Message messages) {
-        System.out.println("Sending: " + messages.getContent());
-        return messages;
+    // Peek a message (do not remove from buffer)
+    protected Message readMessage() {
+        return buffer.peek();
     }
 
-    public Message get() {
-        return new Message("this is getting a message from: " + connector);
-    }
-
-    public String read() {
-        String line = "";
-        return "reading message from: " + connector;
-    }
-
-    private void close() throws IOException {
-        dataInputStream.close();
-        serverSocket.close();
+    // Check if there are messages
+    public boolean hasMessage() {
+        return !buffer.isEmpty();
     }
 }
+
 

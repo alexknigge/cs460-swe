@@ -1,26 +1,15 @@
 package Monitor;
 import Server.*;
 
-import java.io.IOException;
-
 /* class to represent the Monitor port specialization */
 
-public class MonitorPort {
+public class MonitorPort extends ioPort {
 
-    private ioPort port;
-
-    public MonitorPort(String connector) throws IOException {
-        this.port = new ioPort(connector);
+    public void send(Message msg) {
+        super.sendMessage(msg);
     }
 
-    // uses IoPort to send
-    public Message sendMessage(Message message) {
-        return port.send(message);
+    public Message read() {
+        return super.readMessage();
     }
-
-    // uses IoPort to read
-    public String readMessage() {
-        return port.read();
-    }
-
 }
