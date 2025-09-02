@@ -79,7 +79,7 @@ public class CardReader extends Application {
         // Side Panel
         Button payButton = new Button("(Simulate Card Tap)");
         payButton.setOnAction(e -> {
-            commManager.sendMessage(new Message(generate16(), 1001));
+            commManager.sendMessage(new Message(generate16()));
             outerRect.setFill(Color.ORANGE);
         });
         VBox buttonBox = new VBox(30, payButton);

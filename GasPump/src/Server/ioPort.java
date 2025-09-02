@@ -1,6 +1,7 @@
 package Server;
 /* This class represents an object that helps build the specializations. */
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -25,6 +26,13 @@ public class ioPort {
     // Check if there are messages
     public boolean hasMessage() {
         return !buffer.isEmpty();
+    }
+
+    public void run() throws IOException {
+        while (true) {
+            Message msg = getMessage();
+            System.out.println("got message");
+        }
     }
 }
 

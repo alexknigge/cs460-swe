@@ -3,19 +3,13 @@ package Server;
 /* Class to handle messages across devices */
 public class Message {
     private final String CONTENT;
-    private final int DEVICE;
 
-    public Message(String CONTENT, int DEVICE) {
+    public Message(String CONTENT) {
         this.CONTENT = CONTENT;
-        this.DEVICE = DEVICE;
     }
 
     public String getContent() {
         return CONTENT;
-    }
-
-    public int getDevice() {
-        return DEVICE;
     }
 
     @Override
