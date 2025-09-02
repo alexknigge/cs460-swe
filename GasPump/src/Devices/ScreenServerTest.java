@@ -229,7 +229,7 @@ public class ScreenServerTest {
                     });
                     clientListener.start();
 
-                    // Main thread will read from console and send TO the UI client
+                    // Main.Main thread will read from console and send TO the UI client
                     BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
                     String userInput;
                     while ((userInput = stdIn.readLine()) != null && clientSocket.isConnected()) {

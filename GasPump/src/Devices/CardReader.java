@@ -1,6 +1,7 @@
 package Devices;
 
 
+import Server.Message;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -37,11 +38,10 @@ import javafx.util.Duration;
  * (2) The string "error//" if there is a card read error.
  */
 
-public class CardReader extends Application implements
-        ScreenCommunicationManager.MessageListener {
+public class CardReader extends Application {
 
     Rectangle outerRect;
-    private ScreenCommunicationManager commManager;
+    private static ScreenCommunicationManager commManager;
     private boolean guiTest = true;
 
     public static void main(String[] args) {
@@ -50,13 +50,11 @@ public class CardReader extends Application implements
 
     @Override
     public void start(Stage primaryStage) {
-        commManager = new ScreenCommunicationManager(this);
         BorderPane root = createUI();
         Scene scene = new Scene(root, 600, 300);
         primaryStage.setTitle("Card Reader UI Mockup");
         primaryStage.setScene(scene);
         primaryStage.show();
-        commManager.startListening();
     }
 
     private BorderPane createUI() {
@@ -81,7 +79,7 @@ public class CardReader extends Application implements
         // Side Panel
         Button payButton = new Button("(Simulate Card Tap)");
         payButton.setOnAction(e -> {
-            commManager.sendMessage(generate16());
+            commManager.sendMessage(new Message(generate16(), 1001));
             outerRect.setFill(Color.ORANGE);
         });
         VBox buttonBox = new VBox(30, payButton);
@@ -89,17 +87,13 @@ public class CardReader extends Application implements
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
 
-        // Main layout
+        // Main.Main layout
         BorderPane root = new BorderPane();
         StackPane stack = new StackPane(outerRect, innerRect, imageView);
         root.setCenter(stack);
         root.setRight(buttonBox);
         return root;
 
-    }
-    @Override
-    public void onMessageReceived(String message) {
-        Platform.runLater(() -> processMessage(message));
     }
 
     public void processMessage(String message) {
@@ -125,10 +119,6 @@ public class CardReader extends Application implements
         }
 }
 
-    @Override
-    public void onCommunicationError(Exception e) {
-        commManager.sendMessage("error");
-    }
 
     private String generate16() {
         StringBuilder sb = new StringBuilder(16);

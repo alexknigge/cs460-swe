@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import Main.Main;
 import java.util.List;
 
 /**
@@ -31,11 +32,14 @@ public class GasPumpUI extends Application {
     private static ScreenCommunicationManager commManager;
     private static GasPumpUI instance;
 
+    public GasPumpUI() {
+        instance = this;
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
 
-    // Setter for Main to inject the port
     public static void setCommManager(ScreenCommunicationManager manager) {
         commManager = manager;
     }
@@ -51,6 +55,7 @@ public class GasPumpUI extends Application {
         Scene scene = new Scene(gridPane, 400, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
+        Main.startComms();
     }
 
     public void processScreenMessage(Message message) {
@@ -109,7 +114,7 @@ public class GasPumpUI extends Application {
         gridPane.add(node, gridCol, row);
     }
 
-    private GridPane createGridPane() {
+    public GridPane createGridPane() {
         GridPane pane = new GridPane();
         pane.setAlignment(Pos.CENTER);
         pane.setStyle("-fx-background-color: #D3D3D3;");
