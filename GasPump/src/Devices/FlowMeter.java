@@ -3,12 +3,15 @@ package Devices;
 import java.text.DecimalFormat;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.Random;
 
 public class FlowMeter {
     private final double rateGalPerSec;
     private final double pricePerGallon;
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private final Consumer<String> emit;
+    private final Random rand = new Random();
+    private java.util.function.Consumer<Boolean> onStop; // true = auto-stop, false = manual stop
 
     private boolean running = false;
     private long lastStartNanos;
@@ -30,6 +33,11 @@ public class FlowMeter {
         this.pricePerGallon = ppg;
     }
 
+    /** Optional: set a callback invoked when pumping stops. Argument is true for auto-stop, false for manual/cancel. */
+    public void setOnStop(java.util.function.Consumer<Boolean> onStop) {
+        this.onStop = onStop;
+    }
+
     /**
      * Initializes the display layout for the flow meter,
      * setting initial values for gallons and price.
@@ -48,16 +56,28 @@ public class FlowMeter {
         running = true;
         lastStartNanos = System.nanoTime();
         exec.scheduleAtFixedRate(this::tick, 0, 100, TimeUnit.MILLISECONDS);
+        // Demo: auto-stop after a random duration (simulates pump sensor ending)
+        int stopSeconds = 5 + rand.nextInt(11); // 5–15 seconds
+        exec.schedule(() -> { if (running) stop(true); }, stopSeconds, TimeUnit.SECONDS);
     }
 
     /**
      * Pauses the flow meter simulation, accumulating the elapsed time so far.
      * If not running, does nothing.
      */
-    public void pause() {
+    public void pause() { stop(false); }
+
+    /**
+     * Stops the flow meter, finalizes elapsed time, and triggers an optional onStop callback.
+     * @param auto true if this was an automatic/random stop; false if manual (e.g., cancel)
+     */
+    public void stop(boolean auto) {
         if (!running) return;
         accSeconds += (System.nanoTime() - lastStartNanos) / 1e9;
         running = false;
+        if (onStop != null) {
+            try { onStop.accept(auto); } catch (Exception ignored) {}
+        }
     }
 
     /**

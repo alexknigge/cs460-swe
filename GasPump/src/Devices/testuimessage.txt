@@ -1,1 +1,1 @@
-t:01/s:3/f:2/c:0/Welcome!;t:2/s:2/f:1/c:0/Select Grade;t:4/s:2/f:1/c:3/87 Octane;b:4/m;t:5/s:2/f:1/c:4/91 Octane;b:5/m;t:8/s:1/f:3/c:2/Cancel;b:8/x;//
+t:01/s:3/f:2/c:0/Welcome!;t:2/s:2/f:1/c:0/Select Grade;t:4/s:2/f:1/c:3/87 Octane;$4.49;b:4/m;t:5/s:2/f:1/c:4/91 Octane;$4.99;b:5/m;t:6/s:2/f:1/c:1/93 Octane;$5.29;b:6/m;t:8/s:1/f:3/c:2/Cancel;b:8/x;//
