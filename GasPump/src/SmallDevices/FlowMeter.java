@@ -1,4 +1,4 @@
-package Devices;
+package SmallDevices;
 
 import java.text.DecimalFormat;
 import java.util.concurrent.*;

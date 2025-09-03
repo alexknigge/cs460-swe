@@ -1,4 +1,4 @@
-package Devices;
+package GasPumpUI;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;

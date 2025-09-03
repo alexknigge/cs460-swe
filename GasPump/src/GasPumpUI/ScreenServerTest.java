@@ -1,4 +1,6 @@
-package Devices;
+package GasPumpUI;
+
+import SmallDevices.FlowMeter;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

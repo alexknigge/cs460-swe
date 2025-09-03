@@ -1,15 +1,16 @@
-package Communicator;
+package Server;
 /* class to represent the Communicator specialization */
 
-import Server.IOPort;
-import Server.Message;
-
 public class CommPort extends IOPort {
+    public CommPort(int CONNECTOR) {
+        super(CONNECTOR);
+    }
+
     public void send(Message msg) {
-        super.sendMessage(msg);
+        super.send(msg);
     }
 
     public Message get() {
-        return super.getMessage();
+        return super.get();
     }
 }

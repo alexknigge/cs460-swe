@@ -1,15 +1,20 @@
-package Monitor;
-import Server.*;
+package Server;
 
 /* class to represent the Monitor port specialization */
 
 public class MonitorPort extends IOPort {
 
-    public void send(Message msg) {
-        super.sendMessage(msg);
+    public MonitorPort(int CONNECTOR) {
+        super(CONNECTOR);
     }
 
+    public void send(Message msg) {
+        super.send(msg);
+    }
+
+
     public Message read() {
-        return super.readMessage();
+        return super.read();
     }
 }
+

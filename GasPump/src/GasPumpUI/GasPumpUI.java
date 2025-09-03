@@ -1,4 +1,4 @@
-package Devices;
+package GasPumpUI;
 
 import Server.Message;
 import Server.IOPort;
@@ -34,7 +34,7 @@ public class GasPumpUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Instantiate the IOPort for device ID 0. It starts running automatically.
-        mainIOPort = new IOPort("0");
+        mainIOPort = new IOPort(12345);
 
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
@@ -54,7 +54,7 @@ public class GasPumpUI extends Application {
         AnimationTimer messagePoller = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                String newMessage = mainIOPort.readMessage();
+                String newMessage = mainIOPort.read().toString();
                 if (newMessage != null) {
                     processScreenMessage(newMessage);
                 }
@@ -87,7 +87,7 @@ public class GasPumpUI extends Application {
             // Set a single action handler for all buttons
             currentButton.setOnAction(event -> {
                 // Send the button press message through the IOPort
-                mainIOPort.sendMessage(new Message("b:" + cellId + "//"));
+                mainIOPort.send(new Message("b:" + cellId + "//"));
 
                 // If the button is mutually exclusive, handle the style change
                 if (info.type() == ScreenParser.BUTTON_TYPE_MUTUALLY_EXCLUSIVE) {

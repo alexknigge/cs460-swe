@@ -1,9 +1,12 @@
-package Control;
+package Server;
 /* class to represent the Control Port specialization */
 
-import Server.*;
 public class ControlPort extends IOPort {
+    public ControlPort(int CONNECTOR) {
+        super(CONNECTOR);
+    }
+
     public void send(Message msg) {
-        super.sendMessage(msg);
+        super.send(msg);
     }
 }

@@ -8,13 +8,13 @@ public class Message {
         this.CONTENT = CONTENT;
     }
 
-    public String getContent() {
-        return CONTENT;
-    }
-
     // build a message from a string
     public static Message fromString(String msg) {
         return new Message(msg);
+    }
+
+    public String getContent() {
+        return CONTENT;
     }
 
     @Override
