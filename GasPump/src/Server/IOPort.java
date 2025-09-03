@@ -155,8 +155,8 @@ public class IOPort {
 
 
     /**
-     * Retrieves a message from the queue if one is immediately available,
-     * without blocking.
+     * Retrieves and removes the earliest,
+     * or returns null if this no messages are present in the queue.
      *
      * @return A Message object, or null if no message is available.
      */
@@ -165,8 +165,8 @@ public class IOPort {
     }
 
     /**
-     * Retrieves a message from the queue, waiting if necessary until a message becomes available.
-     * This method is BLOCKING. If the wait is interrupted, it returns null.
+     * Retrieves, but does not remove, the earliest received message,
+     * or returns null if this no messages are present in the queue.
      *
      * @return The Message object from the head of the queue, or null if interrupted.
      */
