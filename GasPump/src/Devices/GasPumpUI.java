@@ -1,7 +1,7 @@
 package Devices;
 
 import Server.Message;
-import Server.ioPort;
+import Server.IOPort;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -25,7 +25,7 @@ public class GasPumpUI extends Application {
     private static final int NUM_COLS = 2;
     private final ScreenParser parser = new ScreenParser();
     private GridPane gridPane;
-    private ioPort mainIOPort;
+    private IOPort mainIOPort;
 
     public static void main(String[] args) {
         launch(args);
@@ -34,7 +34,7 @@ public class GasPumpUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Instantiate the IOPort for device ID 0. It starts running automatically.
-        mainIOPort = new ioPort("0");
+        mainIOPort = new IOPort("0");
 
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();

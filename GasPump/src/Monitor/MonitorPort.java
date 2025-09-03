@@ -3,7 +3,7 @@ import Server.*;
 
 /* class to represent the Monitor port specialization */
 
-public class MonitorPort extends ioPort {
+public class MonitorPort extends IOPort {
 
     public void send(Message msg) {
         super.sendMessage(msg);

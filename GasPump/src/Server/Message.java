@@ -12,6 +12,11 @@ public class Message {
         return CONTENT;
     }
 
+    // build a message from a string
+    public static Message fromString(String msg) {
+        return new Message(msg);
+    }
+
     @Override
     public String toString() {
         return CONTENT;

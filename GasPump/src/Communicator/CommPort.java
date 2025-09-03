@@ -1,10 +1,10 @@
 package Communicator;
 /* class to represent the Communicator specialization */
 
-import Server.ioPort;
+import Server.IOPort;
 import Server.Message;
 
-public class CommPort extends ioPort {
+public class CommPort extends IOPort {
     public void send(Message msg) {
         super.sendMessage(msg);
     }
