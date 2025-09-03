@@ -11,8 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class IOPort {
-
-    private static String HOST = "localhost";
+    
     private final int CONNECTOR;
     private final int RECONNECT_DELAY_SECONDS = 5;
 
@@ -60,8 +59,9 @@ public class IOPort {
         Thread commThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    System.out.println("[DEBUG] Attempting to connect to server at " + HOST + ":" + CONNECTOR + "...");
-                    socket = new Socket(HOST, CONNECTOR);
+                    String host = DeviceMapper.getDeviceAddress(CONNECTOR);
+                    System.out.println("[DEBUG] Attempting to connect to server at " + host + ":" + CONNECTOR + "...");
+                    socket = new Socket(host, CONNECTOR);
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     out = new PrintWriter(socket.getOutputStream(), true);
                     System.out.println("[DEBUG] Connection established successfully.");
