@@ -1,32 +1,31 @@
 package Devices;
 
+import Server.Message;
+import Server.ioPort;
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.List;
 
 /**
  * A JavaFX application that serves as a functional mockup of a gas pump's digital touch screen.
- * It connects the Devices.ScreenParser and Devices.ScreenCommunicationManager to render a UI and handle interactions.
+ * It uses an IOPort to handle all communication and a ScreenParser to render the UI.
  */
-public class GasPumpUI extends Application implements ScreenCommunicationManager.MessageListener {
+public class GasPumpUI extends Application {
 
     private static final int NUM_ROWS = 5;
     private static final int NUM_COLS = 2;
     private final ScreenParser parser = new ScreenParser();
     private GridPane gridPane;
-    private ScreenCommunicationManager commManager;
+    private ioPort mainIOPort;
 
     public static void main(String[] args) {
         launch(args);
@@ -34,29 +33,34 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
 
     @Override
     public void start(Stage primaryStage) {
-        commManager = new ScreenCommunicationManager(this);
+        // Instantiate the IOPort for device ID 0. It starts running automatically.
+        mainIOPort = new ioPort("0");
+
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
         Scene scene = new Scene(gridPane, 400, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        commManager.startListening();
+        // Start a timer to poll for new messages from the IOPort.
+        startMessagePolling();
     }
 
-    @Override
-    public void onMessageReceived(String message) {
-        Platform.runLater(() -> processScreenMessage(message));
-    }
-
-    @Override
-    public void onCommunicationError(Exception e) {
-        Platform.runLater(() -> {
-            Label errorLabel = new Label("Communication Error:\n" + e.getMessage());
-            errorLabel.setTextFill(Color.RED);
-            gridPane.getChildren().clear();
-            gridPane.add(new StackPane(errorLabel), 0, 0, 4, NUM_ROWS);
-        });
+    /**
+     * Creates and starts an AnimationTimer that runs on every frame, checking the IOPort
+     * for new messages to process. This replaces the event-driven listener.
+     */
+    private void startMessagePolling() {
+        AnimationTimer messagePoller = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                String newMessage = mainIOPort.readMessage();
+                if (newMessage != null) {
+                    processScreenMessage(newMessage);
+                }
+            }
+        };
+        messagePoller.start();
     }
 
     private void processScreenMessage(String message) {
@@ -77,8 +81,8 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
 
             // Set a single action handler for all buttons
             currentButton.setOnAction(event -> {
-                // Always send the message
-                commManager.sendMessage("b:" + cellId);
+                // Send the button press message through the IOPort
+                mainIOPort.sendMessage(new Message("b:" + cellId + "//"));
 
                 // If the button is mutually exclusive, handle the style change
                 if (info.type() == ScreenParser.BUTTON_TYPE_MUTUALLY_EXCLUSIVE) {
@@ -132,3 +136,4 @@ public class GasPumpUI extends Application implements ScreenCommunicationManager
         return pane;
     }
 }
+
