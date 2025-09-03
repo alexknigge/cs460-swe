@@ -48,7 +48,7 @@ public class GasPumpUI extends Application {
 
     /**
      * Creates and starts an AnimationTimer that runs on every frame, checking the IOPort
-     * for new messages to process. This replaces the event-driven listener.
+     * for new messages to process, and updates the screen as new messages are processed.
      */
     private void startMessagePolling() {
         AnimationTimer messagePoller = new AnimationTimer() {
@@ -63,6 +63,11 @@ public class GasPumpUI extends Application {
         messagePoller.start();
     }
 
+    /**
+     * Updates the screen given a String Message
+     *
+     * @param message The formatted string message
+     */
     private void processScreenMessage(String message) {
         gridPane.getChildren().clear();
         ScreenParser.ScreenLayout layout = parser.parse(message);
