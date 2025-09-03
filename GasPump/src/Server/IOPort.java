@@ -171,12 +171,7 @@ public class IOPort {
      * @return The Message object from the head of the queue, or null if interrupted.
      */
     public Message read() {
-        try {
-            return inQueue.take();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Preserve the interrupted status
-            return null;
-        }
+        return inQueue.peek();
     }
 
     /**
