@@ -43,14 +43,10 @@ public class TestMainForScreen {
             // Loop indefinitely to read and print messages from the GasPumpUI.
             while (!mainServerPort.isClosed()) {
                 // read() is a blocking call that waits for a message to arrive.
-                Message receivedMsg = mainServerPort.read();
+                Message receivedMsg = mainServerPort.get();
 
                 if (receivedMsg != null) {
                     System.out.println("RECEIVED from UI: \"" + receivedMsg.getContent() + "\"");
-                } else {
-                    // read() returns null if the listening thread was interrupted, usually during a close().
-                    System.out.println("Read operation was interrupted. Connection likely closing.");
-                    break;
                 }
             }
         } finally {
