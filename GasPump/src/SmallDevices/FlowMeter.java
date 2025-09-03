@@ -1,18 +1,34 @@
 package SmallDevices;
 
+import Server.IOPort;
+import Server.Message;
+
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import java.util.Random;
 
+/**
+ * FlowMeter simulates a fuel pump by computing the number of gallons dispensed and the total price based on elapsed time.
+ * <p>
+ * This class does not directly handle any JavaFX UI components. Instead, it emits formatted protocol strings
+ * (e.g., "t:/s:/...") that are consumed by the GasPumpUI for visualization.
+ * <p>
+ * FlowMeter communicates with the Main application through an IOPort, which orchestrates multiple devices
+ * and manages message passing. The messages sent by FlowMeter (such as FLOW:ON, FLOW:TICK, FLOW:STOP, FLOW:RESET)
+ * are interpreted by Main and GasPumpUI to update the pump display accordingly.
+ * <p>
+ * This design cleanly separates backend logic (FlowMeter) from the UI layer (GasPumpUI), allowing FlowMeter
+ * to focus solely on the pumping simulation and protocol message emission.
+ */
 public class FlowMeter {
-    private final double rateGalPerSec;
-    private final double pricePerGallon;
-    private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private final Consumer<String> emit;
+    private IOPort ioPort;
+    private volatile double rateGalPerSec;
+    private volatile double pricePerGallon;
+    private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private final Random rand = new Random();
-    private java.util.function.Consumer<Boolean> onStop; // true = auto-stop, false = manual stop
-
+    private java.util.function.Consumer<Boolean> onStop;
     private boolean running = false;
     private long lastStartNanos;
     private double accSeconds = 0.0;
@@ -20,110 +36,138 @@ public class FlowMeter {
     private static final DecimalFormat G = new DecimalFormat("0.000");
     private static final DecimalFormat $ = new DecimalFormat("$0.000");
 
-    /**
-     * Constructs a Devices.FlowMeter instance.
-     *
-     * @param emit A Consumer that receives display messages (typically for UI updates).
-     * @param gps The flow rate in gallons per second.
-     * @param ppg The price per gallon.
-     */
     public FlowMeter(Consumer<String> emit, double gps, double ppg) {
         this.emit = emit;
         this.rateGalPerSec = gps;
         this.pricePerGallon = ppg;
     }
 
-    /** Optional: set a callback invoked when pumping stops. Argument is true for auto-stop, false for manual/cancel. */
+    /** hook up the new IO port */
+    public void attachPort(IOPort port) {
+        this.ioPort = port;
+    }
+
+    /** optional callback when we stop; true = auto-stop (timer), false = manual/cancel */
     public void setOnStop(java.util.function.Consumer<Boolean> onStop) {
         this.onStop = onStop;
     }
 
-    /**
-     * Initializes the display layout for the flow meter,
-     * setting initial values for gallons and price.
-     */
+    /** show zeros in the two flow cells */
     public void initLayout() {
-        send("t:1/s:3/st:2/c:0/0.000 gal;"   // cell 1 = gallons (big + bold)
-                + "t:3/s:3/st:2/c:0/$0.000;");   // cell 3 = price   (big + bold)
+        send("t:3/s:3/st:2/c:0/0.000 gal;"   // row 1 down -> now cell 3
+                + "t:5/s:3/st:2/c:0/$0.000;");   // and price in cell 5
     }
 
-    /**
-     * Starts the flow meter simulation, causing it to begin tracking the elapsed time,
-     * gallons dispensed, and total price. If already running, does nothing.
-     */
+    /** start pumping; if already running, no-op */
     public void start() {
         if (running) return;
         running = true;
         lastStartNanos = System.nanoTime();
+        sendPort("FLOW:ON");
+
+        // 10Hz updates
         exec.scheduleAtFixedRate(this::tick, 0, 100, TimeUnit.MILLISECONDS);
-        // Demo: auto-stop after a random duration (simulates pump sensor ending)
-        int stopSeconds = 5 + rand.nextInt(11); // 5–15 seconds
+
+        // demo: random auto-stop (5–15s)
+        int stopSeconds = 5 + rand.nextInt(11);
         exec.schedule(() -> { if (running) stop(true); }, stopSeconds, TimeUnit.SECONDS);
     }
 
-    /**
-     * Pauses the flow meter simulation, accumulating the elapsed time so far.
-     * If not running, does nothing.
-     */
+    /** pause (manual) */
     public void pause() { stop(false); }
 
-    /**
-     * Stops the flow meter, finalizes elapsed time, and triggers an optional onStop callback.
-     * @param auto true if this was an automatic/random stop; false if manual (e.g., cancel)
-     */
+    /** stop pumping and fire optional callback */
     public void stop(boolean auto) {
         if (!running) return;
         accSeconds += (System.nanoTime() - lastStartNanos) / 1e9;
         running = false;
+        sendPort("FLOW:STOP reason=" + (auto ? "auto" : "manual"));
         if (onStop != null) {
             try { onStop.accept(auto); } catch (Exception ignored) {}
         }
     }
 
-    /**
-     * Resets the flow meter, clearing all accumulated time, gallons, and price,
-     * and updates the display to show zero values.
-     */
+    /** reset counters and UI back to zero */
     public void reset() {
         running = false;
         accSeconds = 0.0;
         send(updateMessage(0, 0));
+        sendPort("FLOW:RESET");
     }
 
     /**
-     * Periodically called to update the display with the latest gallons dispensed and total price.
-     * Does nothing if the flow meter is not running.
+     * Called on schedule. We:
+     * 1) poll IOPort for any inbound CMD:* (non-blocking)
+     * 2) if running, compute gallons/total and emit both UI + FLOW:TICK
      */
     private void tick() {
+        // 1) poll inbound messages (no blocking, no threads required)
+        pollCommands();
+
+        // 2) update if running
         if (!running) return;
         double elapsed = accSeconds + (System.nanoTime() - lastStartNanos) / 1e9;
         double gallons = elapsed * rateGalPerSec;
-        double total = gallons * pricePerGallon;
+        double total   = gallons * pricePerGallon;
+
         send(updateMessage(gallons, total));
+        sendPort("FLOW:TICK gallons=" + G.format(gallons) +
+                " total=" + $.format(total).substring(1));
     }
 
     /**
-     * Creates a formatted display message showing the specified gallons and total price.
-     * The message string format uses codes for display cell configuration:
-     * - t: text cell ID
-     * - s: size (1 small, 2 medium, 3 large)
-     * - st: style (1 regular, 2 bold, 3 italic)
-     * - c: color (0 default, 1 purple, 2 red, 3 green, 4 blue)
-     * - followed by the display text (gallons or price)
-     *
-     * @param gallons The number of gallons dispensed.
-     * @param total The total price for the dispensed gallons.
-     * @return A formatted string suitable for display.
+     * Polls the IOPort for incoming messages in a non-blocking manner.
+     * Drains the message queue and forwards each command string to handlePortCommand.
      */
+    private void pollCommands() {
+        if (ioPort == null) return;
+        Message m = ioPort.get();                 // returns null if none
+        while (m != null) {
+            String msg = m.getContent();
+            if (msg != null) handlePortCommand(msg.trim());
+            m = ioPort.get();                     // drain queue
+        }
+    }
+
+    /** understand simple wire commands from Main */
+    private void handlePortCommand(String msg) {
+        if (msg.startsWith("CMD:START")) {
+            // allow optional overrides: rate=<gps> ppg=<price>
+            double r = getDoubleParam(msg, "rate", rateGalPerSec);
+            double p = getDoubleParam(msg, "ppg",  pricePerGallon);
+            rateGalPerSec = r;
+            pricePerGallon = p;
+            initLayout();
+            start();
+        } else if (msg.equals("CMD:PAUSE")) {
+            stop(false);
+        } else if (msg.equals("CMD:RESET")) {
+            reset();
+        }
+    }
+
+    private static double getDoubleParam(String s, String key, double defVal) {
+        int i = s.indexOf(key + "=");
+        if (i < 0) return defVal;
+        int start = i + key.length() + 1;
+        int end = start;
+        while (end < s.length() && (Character.isDigit(s.charAt(end)) || s.charAt(end) == '.')) end++;
+        try { return Double.parseDouble(s.substring(start, end)); }
+        catch (Exception e) { return defVal; }
+    }
+
+    // updateMessage(...)
     private String updateMessage(double gallons, double total) {
-        return "t:1/s:3/st:2/c:0/" + G.format(gallons) + " gal;"
-                + "t:3/s:3/st:2/c:0/" + $.format(total)   + ";";
+        return "t:3/s:3/st:2/c:0/" + G.format(gallons) + " gal;"
+                + "t:5/s:3/st:2/c:0/" + $.format(total)   + ";";
     }
 
-    /**
-     * Sends a message to the display consumer.
-     *
-     * @param msg The message to send.
-     */
-    private void send(String msg) { emit.accept(msg); }
+    private void send(String msg) {
+        if (emit != null) emit.accept(msg);
+    }
+
+    private void sendPort(String s) {
+        if (ioPort != null) ioPort.send(new Message(s));
+    }
+
 }
