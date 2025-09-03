@@ -26,24 +26,29 @@ public class Pump {
         System.out.println("Stopping pump.");
     }
 
-    public void run() throws IOException {
-        while (true) {
-            Message msg = statusPort.get();
-            if (msg == null || msg.getContent() == null) {
-                continue; // no message yet
-            }
+    public void run() {
+        Message msg = statusPort.get();
+        if (msg == null || msg.getContent() == null) {
+            return; // no message yet
+        }
 
-            System.out.println("Pump received: " + msg.getContent());
+        System.out.println("Pump received: " + msg.getContent());
 
-            switch (msg.getContent()) {
-                case "on" -> pumpOn();
-                case "off" -> pumpOff();
-                default -> System.out.println("Unknown command: " + msg.getContent());
-            }
+        switch (msg.getContent()) {
+            case "on" -> pumpOn();
+            case "off" -> pumpOff();
+            default -> System.out.println("Unknown command: " + msg.getContent());
         }
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Pump pump = new Pump();
+        Thread pumpClientThread = new Thread(() -> {
+            Pump pump = new Pump();
+            while (true) {
+                pump.run();
+            }
+        });
+
+        pumpClientThread.start();
     }
 }
