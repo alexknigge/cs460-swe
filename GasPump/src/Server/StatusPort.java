@@ -3,8 +3,8 @@ package Server;
 /* class to represent the Status specialization */
 
 public class StatusPort extends IOPort {
-    public StatusPort(int port) {
-        super(port);
+    public StatusPort(int connector) {
+        super(connector);
     }
 
     public Message read() {

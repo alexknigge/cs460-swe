@@ -34,10 +34,10 @@ public class IOPort {
     public IOPort(int connectorPort) {
         try {
             String deviceName = DeviceMapper.getDeviceAddress(connectorPort);
-            if (DeviceMapper.MAIN_HOST_NAME.equals(deviceName)) {
+            if (!DeviceMapper.MAIN_HOST_NAME.equals(deviceName)) {
                 // This is connecting to the main host,
                 // so it acts as a CLIENT connecting to a device server.
-                startAsClient(DeviceMapper.DEVICE_SERVER_HOST, DeviceMapper.PUMP_SERVER_PORT);
+                startAsClient(DeviceMapper.DEVICE_SERVER_HOST, 20000);
             } else {
                 // This is connecting a peripheral device (from Main),
                 // so it acts as a SERVER.
