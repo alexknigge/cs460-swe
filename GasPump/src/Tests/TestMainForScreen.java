@@ -1,4 +1,7 @@
-package Server;
+package Tests;
+
+import Server.IOPort;
+import Server.Message;
 
 /**
  * A simulation of the main program that controls the GasPumpUI.
