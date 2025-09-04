@@ -34,7 +34,7 @@ public class GasPumpUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Instantiate the IOPort for device ID 0. It starts running automatically.
-        mainIOPort = new IOPort(20000);
+        mainIOPort = new IOPort("screenToMain");
 
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
