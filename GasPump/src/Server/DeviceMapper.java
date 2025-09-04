@@ -19,11 +19,13 @@ public class DeviceMapper {
      * The designated port for the pump device, which will act as a server.
      */
     public static final int PUMP_SERVER_PORT = 12345;
-    private static final List<String> deviceClientIDs = Arrays.asList("pumpToMain",
+    private static final List<String> deviceClientIDs = Arrays.asList(
+            "pumpToMain",
             "cardReaderToMain",
             "flowMeterToMain",
             "screenToMain");
-    private static final List<String> mainServerIDs = Arrays.asList("MainToPump",
+    private static final List<String> mainServerIDs = Arrays.asList(
+            "MainToPump",
             "MainToCardReader",
             "MainToFlowMeter",
             "MainToScreen");

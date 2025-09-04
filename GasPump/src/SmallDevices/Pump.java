@@ -4,12 +4,23 @@ import Server.Message;
 import Server.StatusPort;
 
 import java.io.IOException;
-import java.net.Socket;
 
 public class Pump {
-    private StatusPort statusPort = new StatusPort(12345);
-    public Pump()  {
+    private final StatusPort statusPort = new StatusPort("pumpToMain");
+
+    public Pump() {
         System.out.println("Pump started up...");
+    }
+
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        Thread pumpClientThread = new Thread(() -> {
+            Pump pump = new Pump();
+            while (true) {
+                pump.run();
+            }
+        });
+
+        pumpClientThread.start();
     }
 
     /**
@@ -37,18 +48,8 @@ public class Pump {
         switch (msg.getContent()) {
             case "on" -> pumpOn();
             case "off" -> pumpOff();
-            default -> System.out.println("Unknown command: " + msg.getContent());
+            default ->
+                    System.out.println("Unknown command: " + msg.getContent());
         }
-    }
-
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Thread pumpClientThread = new Thread(() -> {
-            Pump pump = new Pump();
-            while (true) {
-                pump.run();
-            }
-        });
-
-        pumpClientThread.start();
     }
 }

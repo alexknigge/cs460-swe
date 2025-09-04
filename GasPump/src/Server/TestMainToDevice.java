@@ -8,7 +8,7 @@ public class TestMainToDevice {
         // Thread for the peripheral device (e.g., a pump), which will act as the SERVER.
         Thread deviceServerThread = new Thread(() -> {
             // Instantiating with the pump's port, which maps to "pump", so it becomes a server.
-            IOPort devicePort = new IOPort(DeviceMapper.PUMP_SERVER_PORT);
+            IOPort devicePort = new IOPort("cardReaderToMain");
             if (devicePort.isClosed()) {
                 System.err.println("Device Server Thread: Failed to initialize port. Exiting.");
                 return;
@@ -43,7 +43,7 @@ public class TestMainToDevice {
         // Thread for the main host, which will act as the CLIENT.
         Thread mainHostClientThread = new Thread(() -> {
             // Instantiating with port 20000, which maps to "main host", so it becomes a client.
-            IOPort mainPort = new IOPort(20000);
+            IOPort mainPort = new IOPort("MainToCardReader");
             if (mainPort.isClosed()) {
                 System.err.println("Main Host Client Thread: Failed to initialize port. Exiting.");
                 return;
