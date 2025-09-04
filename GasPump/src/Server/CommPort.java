@@ -2,7 +2,7 @@ package Server;
 /* class to represent the Communicator specialization */
 
 public class CommPort extends IOPort {
-    public CommPort(int CONNECTOR) {
+    public CommPort(String CONNECTOR) {
         super(CONNECTOR);
     }
 

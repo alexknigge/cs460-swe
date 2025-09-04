@@ -2,7 +2,7 @@ package Server;
 /* class to represent the Control Port specialization */
 
 public class ControlPort extends IOPort {
-    public ControlPort(int CONNECTOR) {
+    public ControlPort(String CONNECTOR) {
         super(CONNECTOR);
     }
 

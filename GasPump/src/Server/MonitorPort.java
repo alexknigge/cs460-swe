@@ -4,7 +4,7 @@ package Server;
 
 public class MonitorPort extends IOPort {
 
-    public MonitorPort(int CONNECTOR) {
+    public MonitorPort(String CONNECTOR) {
         super(CONNECTOR);
     }
 
