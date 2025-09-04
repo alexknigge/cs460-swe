@@ -3,7 +3,6 @@ package SmallDevices;
 
 import Server.IOPort;
 import Server.Message;
-import Server.StatusPort;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -20,9 +19,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.net.Socket;
 
 /**
  * @Author: Dustin Ferguson
@@ -45,16 +41,27 @@ import java.net.Socket;
 
 public class CardReader extends Application {
 
-    Rectangle outerRect;
     private static IOPort commManager;
-    private boolean guiTest = true;
+    Rectangle outerRect;
+    private final boolean guiTest = true;
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    public static boolean isInteger(String s) {
+        if (s == null || s.isEmpty()) return false;
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     @Override
     public void start(Stage primaryStage) {
+        commManager = new IOPort("cardReaderToMain");
         BorderPane root = createUI();
         Scene scene = new Scene(root, 600, 300);
         primaryStage.setTitle("Card Reader UI Mockup");
@@ -104,42 +111,27 @@ public class CardReader extends Application {
     public void processMessage(String message) {
         if (message.equalsIgnoreCase("approved//")) {
             outerRect.setFill(Color.LIMEGREEN);
-        }
-        else if (message.equalsIgnoreCase("declined//")) {
+        } else if (message.equalsIgnoreCase("declined//")) {
             outerRect.setFill(Color.RED);
             PauseTransition delay = new PauseTransition(Duration.seconds(5));
             delay.setOnFinished(event ->
                     Platform.runLater(() -> outerRect.setFill(Color.GREEN))
             );
             delay.play();
-        }
-        else if (message.equalsIgnoreCase("complete//")) {
+        } else if (message.equalsIgnoreCase("complete//")) {
             outerRect.setFill(Color.GREEN);
-        }
-        else if (message.equalsIgnoreCase("error")) {
+        } else if (message.equalsIgnoreCase("error")) {
             outerRect.setFill(Color.RED);
-        }
-        else {
+        } else {
             outerRect.setFill(Color.GREEN);
         }
-}
-
+    }
 
     private String generate16() {
         StringBuilder sb = new StringBuilder(16);
         java.util.Random r = new java.util.Random();
         for (int i = 0; i < 16; i++) sb.append(r.nextInt(10));
         return sb.toString();
-    }
-
-    public static boolean isInteger(String s) {
-        if (s == null || s.isEmpty()) return false;
-        try {
-            Integer.parseInt(s);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
 }
