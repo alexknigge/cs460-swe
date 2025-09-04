@@ -79,6 +79,17 @@ public class FlowMeter {
         accSeconds += (System.nanoTime() - lastStartNanos) / 1e9;
         running = false;
         sendPort("FLOW:STOP reason=" + (auto ? "auto" : "manual"));
+        // After stopping, emit a summary screen for ScreenParser
+        double gallons = accSeconds * rateGalPerSec;
+        double total = gallons * pricePerGallon;
+        // formatted summary message for the screen
+        String summary =
+            "t:1/s:1/st:1/c:0/Sale Complete;" +
+            "t:3/s:2/st:2/c:0/Total Dispensed:;" +
+            "t:4/s:2/st:2/c:0/" + G.format(gallons) + " gal;" +
+            "t:3/s:3/st:2/c:0/Total Price:;" +
+            "t:4/s:3/st:2/c:0/" + $.format(total) + "//";
+        sendPort(summary);
         if (onStop != null) {
             try { onStop.accept(auto); } catch (Exception ignored) {}
         }
