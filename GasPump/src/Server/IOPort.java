@@ -29,7 +29,7 @@ public class IOPort {
      * If the connectorPort maps to the "main host" in DeviceMapper, it acts as a CLIENT.
      * Otherwise, it acts as a SERVER, listening on the connectorPort.
      *
-     * @param connectorPort The port number that defines the device and its role.
+     * @param deviceID The port number that defines the device and its role.
      */
     // TODO: update javadoc
     public IOPort(String deviceID) {
