@@ -20,10 +20,12 @@ import java.util.function.Consumer;
  * <p>
  * This design cleanly separates backend logic (FlowMeter) from the UI layer (GasPumpUI), allowing FlowMeter
  * to focus solely on the pumping simulation and protocol message emission.
+ * <p>
+ * This class instantiates its own IOPort using the DeviceMapper ID "flowMeterToMain" (port 1236) rather than wiring it via a helper method.
  */
 public class FlowMeter {
     private final Consumer<String> emit;
-    private IOPort ioPort;
+    private final IOPort flowPort = new IOPort("flowMeterToMain");
     private volatile double rateGalPerSec;
     private volatile double pricePerGallon;
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
@@ -40,11 +42,6 @@ public class FlowMeter {
         this.emit = emit;
         this.rateGalPerSec = gps;
         this.pricePerGallon = ppg;
-    }
-
-    /** hook up the new IO port */
-    public void attachPort(IOPort port) {
-        this.ioPort = port;
     }
 
     /** optional callback when we stop; true = auto-stop (timer), false = manual/cancel */
@@ -120,12 +117,12 @@ public class FlowMeter {
      * Drains the message queue and forwards each command string to handlePortCommand.
      */
     private void pollCommands() {
-        if (ioPort == null) return;
-        Message m = ioPort.get();                 // returns null if none
+        if (flowPort == null) return;
+        Message m = flowPort.get();                 // returns null if none
         while (m != null) {
             String msg = m.getContent();
             if (msg != null) handlePortCommand(msg.trim());
-            m = ioPort.get();                     // drain queue
+            m = flowPort.get();                     // drain queue
         }
     }
 
@@ -167,7 +164,7 @@ public class FlowMeter {
     }
 
     private void sendPort(String s) {
-        if (ioPort != null) ioPort.send(new Message(s));
+        if (flowPort != null) flowPort.send(new Message(s));
     }
 
 }
