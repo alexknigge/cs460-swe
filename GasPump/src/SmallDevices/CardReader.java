@@ -43,20 +43,9 @@ public class CardReader extends Application {
 
     private static IOPort commManager;
     Rectangle outerRect;
-    private final boolean guiTest = true;
 
     public static void main(String[] args) {
         launch(args);
-    }
-
-    public static boolean isInteger(String s) {
-        if (s == null || s.isEmpty()) return false;
-        try {
-            Integer.parseInt(s);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     @Override
@@ -91,7 +80,7 @@ public class CardReader extends Application {
         // Side Panel
         Button payButton = new Button("(Simulate Card Tap)");
         payButton.setOnAction(e -> {
-            commManager.send(new Message(generate16()));
+            commManager.send(new Message(generate16() + "//"));
             outerRect.setFill(Color.ORANGE);
         });
         VBox buttonBox = new VBox(30, payButton);
