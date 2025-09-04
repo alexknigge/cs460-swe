@@ -167,4 +167,12 @@ public class FlowMeter {
         if (flowPort != null) flowPort.send(new Message(s));
     }
 
+    /**
+     * Main entry point for running FlowMeter standalone for test/demo.
+     */
+    public static void main(String[] args){
+        // Dummy message to print to console
+        FlowMeter flow = new FlowMeter(msg -> System.out.println("[UI] " + msg), 0.1, 3.25);
+        flow.initLayout();
+    }
 }
