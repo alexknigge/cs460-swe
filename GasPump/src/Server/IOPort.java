@@ -31,17 +31,14 @@ public class IOPort {
      *
      * @param connectorPort The port number that defines the device and its role.
      */
-    public IOPort(int connectorPort) {
+    // TODO: update javadoc
+    public IOPort(String deviceID) {
         try {
-            String deviceName = DeviceMapper.getDeviceAddress(connectorPort);
-            if (!DeviceMapper.MAIN_HOST_NAME.equals(deviceName)) {
-                // This is connecting to the main host,
-                // so it acts as a CLIENT connecting to a device server.
-                startAsClient(DeviceMapper.DEVICE_SERVER_HOST, 20000);
+            int portNum = DeviceMapper.getDevicePort(deviceID);
+            if (DeviceMapper.shouldIDBeAServer(deviceID)) {
+                startAsServer(portNum);
             } else {
-                // This is connecting a peripheral device (from Main),
-                // so it acts as a SERVER.
-                startAsServer(connectorPort);
+                startAsClient("localhost", portNum);
             }
         } catch (IllegalArgumentException e) {
             System.err.println("FATAL: Configuration error - " + e.getMessage());
