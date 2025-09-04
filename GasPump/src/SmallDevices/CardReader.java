@@ -20,6 +20,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @Author: Dustin Ferguson
  * </p>
@@ -44,13 +46,27 @@ public class CardReader extends Application {
     private static IOPort commManager;
     Rectangle outerRect;
 
-    public static void main(String[] args) {
-        launch(args);
+    public static void main(String[] args) throws InterruptedException {
+        // launch(args);
+        // TODO: Change this, basically just for demo purposes
+        commManager = new IOPort("cardReaderToMain");
+        while (true) {
+            String initCard = "t:01/s:3/f:2/c:0/Tap to Pay Now;" +
+                    "t:2/s:2/f:1/c:0/Cancel;" + "b:1/m;" +
+                    "t:3/s:2/f:1/c:0/Help;" + "b:2/m;" +
+                    "t:04/s:2/f:1/c:0/;" + "b:3/x;//";
+            commManager.send(new Message(initCard));
+            String paymentAccepted = "t:01/s:3/f:2/c:0/Payment Accepted;" +
+                    "t:2/s:2/f:1/c:0/Thank you!;" +
+                    "t:3/s:2/f:1/c:0/You may begin fueling now;" +
+                    "t:04/s:2/f:1/c:0/;" + "b:1/x;//";
+            commManager.send(new Message(paymentAccepted));
+            TimeUnit.SECONDS.sleep(8);
+        }
     }
 
     @Override
     public void start(Stage primaryStage) {
-        commManager = new IOPort("cardReaderToMain");
         BorderPane root = createUI();
         Scene scene = new Scene(root, 600, 300);
         primaryStage.setTitle("Card Reader UI Mockup");
