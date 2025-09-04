@@ -43,7 +43,7 @@ public class DeviceMapper {
             // Main (Server) Mappings
             "MainToPump", 1234,
             "MainToCardReader", 1235,
-            "MainToFlowMeter", 1246,
+            "MainToFlowMeter", 1236,
             "MainToScreen", 1237
     );
 

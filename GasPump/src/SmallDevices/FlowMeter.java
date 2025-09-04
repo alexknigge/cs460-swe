@@ -29,7 +29,7 @@ public class FlowMeter {
     private volatile double rateGalPerSec;
     private volatile double pricePerGallon;
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
-    private final Random rand = new Random();
+    private final Random rand = new Random(System.currentTimeMillis());
     private java.util.function.Consumer<Boolean> onStop;
     private boolean running = false;
     private long lastStartNanos;
@@ -82,14 +82,15 @@ public class FlowMeter {
         if (onStop != null) {
             try { onStop.accept(auto); } catch (Exception ignored) {}
         }
+        System.out.println("flow stopped");
     }
 
     /** reset counters and UI back to zero */
     public void reset() {
         running = false;
         accSeconds = 0.0;
-        send(updateMessage(0, 0));
-        sendPort("FLOW:RESET");
+        sendPort(updateMessage(0, 0));
+        //sendPort("FLOW:RESET");
     }
 
     /**
@@ -107,16 +108,16 @@ public class FlowMeter {
         double gallons = elapsed * rateGalPerSec;
         double total   = gallons * pricePerGallon;
 
-        send(updateMessage(gallons, total));
-        sendPort("FLOW:TICK gallons=" + G.format(gallons) +
-                " total=" + $.format(total).substring(1));
+        sendPort(updateMessage(gallons, total));
+        //sendPort("FLOW:TICK gallons=" + G.format(gallons) +
+        //        " total=" + $.format(total).substring(1));
     }
 
     /**
      * Polls the IOPort for incoming messages in a non-blocking manner.
      * Drains the message queue and forwards each command string to handlePortCommand.
      */
-    private void pollCommands() {
+    public void pollCommands() {
         if (flowPort == null) return;
         Message m = flowPort.get();                 // returns null if none
         while (m != null) {
@@ -174,5 +175,8 @@ public class FlowMeter {
         // Dummy message to print to console
         FlowMeter flow = new FlowMeter(msg -> System.out.println("[UI] " + msg), 0.1, 3.25);
         flow.initLayout();
+        while (true) {
+            flow.pollCommands();
+        }
     }
 }
