@@ -44,7 +44,7 @@ public class DeviceMapper {
             "MainToPump", 1234,
             "MainToCardReader", 1235,
             "MainToFlowMeter", 1246,
-            "MainToScreen", 1247
+            "MainToScreen", 1237
     );
 
     /**
