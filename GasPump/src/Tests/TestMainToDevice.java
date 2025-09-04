@@ -1,4 +1,7 @@
-package Server;
+package Tests;
+
+import Server.IOPort;
+import Server.Message;
 
 public class TestMainToDevice {
 
