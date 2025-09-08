@@ -17,13 +17,13 @@ import java.util.Map;
  */
 public class ScreenParser {
     // --- Centralized Style Constants ---
-    public static final String STYLE_BUTTON_DEFAULT = "-fx-background-color: #E0E0E0; -fx-border-color: #808080; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
-    public static final String STYLE_BUTTON_SELECTED = "-fx-background-color: #BEBEBE; -fx-border-color: #606060; -fx-border-width: 2; -fx-background-insets: 1; -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
+    public static final String STYLE_BUTTON_DEFAULT = "-fx-background-color: #f5e6e6; -fx-border-color: #c2c0c0; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
+    public static final String STYLE_BUTTON_SELECTED = "-fx-background-color: #f2b99b; -fx-border-color: #606060; -fx-border-width: 2; -fx-background-insets: 1; -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 1);";
     public static final char BUTTON_TYPE_MUTUALLY_EXCLUSIVE = 'm';
-    private static final String STYLE_BG_PURPLE = "-fx-background-color: #800080;";
-    private static final String STYLE_BG_RED = "-fx-background-color: #FF0000;";
-    private static final String STYLE_BG_GREEN = "-fx-background-color: #008000;";
-    private static final String STYLE_BG_BLUE = "-fx-background-color: #0000FF;";
+    private static final String STYLE_BG_PURPLE = "-fx-background-color: #ED91EA;";
+    private static final String STYLE_BG_RED = "-fx-background-color: #f26368;";
+    private static final String STYLE_BG_GREEN = "-fx-background-color: #64e864;";
+    private static final String STYLE_BG_BLUE = "-fx-background-color: #80c3ff;";
     // --- Style and Layout Constants ---
     private static final int FONT_SIZE_SMALL = 1, FONT_SIZE_MEDIUM = 2, FONT_SIZE_LARGE = 3;
     private static final int STYLE_REGULAR = 1, STYLE_BOLD = 2, STYLE_ITALIC = 3;
@@ -95,7 +95,7 @@ public class ScreenParser {
             if (styleStr.contains(String.valueOf(STYLE_ITALIC)))
                 posture = FontPosture.ITALIC;
         }
-        label.setFont(Font.font("sans-serif", weight, posture, fontSize));
+        label.setFont(Font.font("Verdana", weight, posture, fontSize));
     }
 
     private void applyBackgroundColor(StackPane pane, int color) {

@@ -1,5 +1,6 @@
 package Tests;
 
+import Server.DeviceMapper;
 import Server.IOPort;
 import Server.Message;
 
@@ -17,7 +18,7 @@ public class TestMainForScreen {
         // The IOPort for the main program will act as a SERVER.
         // It listens on the PUMP_SERVER_PORT for the GasPumpUI client to connect.
         // The IOPort constructor is blocking and will wait here until a client connects.
-        IOPort mainServerPort = new IOPort("MainToScreen");
+        IOPort mainServerPort = new IOPort(DeviceMapper.MAIN_TO_SCREEN);
 
         // Check if the connection failed.
         if (mainServerPort.isClosed()) {
