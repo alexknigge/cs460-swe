@@ -1,6 +1,9 @@
 package Server;
-/* class to represent the Control Port specialization */
 
+/**
+ * Abstracts a connection to another device.
+ * This is intended for connections which only require the sending of incoming messages from the connection.
+ */
 public class ControlPort extends IOPort {
     public ControlPort(String CONNECTOR) {
         super(CONNECTOR);

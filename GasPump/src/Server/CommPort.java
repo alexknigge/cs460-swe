@@ -1,6 +1,9 @@
 package Server;
-/* class to represent the Communicator specialization */
 
+/**
+ * Abstracts a connection to another device.
+ * This is intended for connections which only require the sending and getting of incoming messages from the connection.
+ */
 public class CommPort extends IOPort {
     public CommPort(String CONNECTOR) {
         super(CONNECTOR);

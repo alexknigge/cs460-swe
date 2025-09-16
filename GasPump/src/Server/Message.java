@@ -1,6 +1,10 @@
 package Server;
 
 /* Class to handle messages across devices */
+
+/**
+ * This message stores information which to be transmitted/received.
+ */
 public class Message {
     private final String CONTENT;
 
