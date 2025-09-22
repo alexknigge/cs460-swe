@@ -1,6 +1,6 @@
 package Main;
 
-import Server.CommPort;
+import Server.IOPort;
 import Server.Message;
 
 import java.io.IOException;
@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 // Main.Main
 public class Main {
     public static void main(String[] args) throws InterruptedException, IOException {
-        CommPort mainToScreen = new CommPort("MainToScreen");
+        IOPort mainToScreen = new IOPort("MainToScreen");
         //CommPort mainToPump = new CommPort("MainToPump");
-        CommPort mainToFlowMeter = new CommPort("MainToFlowMeter");
-        CommPort mainToCardReader = new CommPort("MainToCardReader");
+        IOPort mainToFlowMeter = new IOPort("MainToFlowMeter");
+        IOPort mainToCardReader = new IOPort("MainToCardReader");
 
         while (true) {
             String initialScreenMessage = "t:01/s:3/f:2/c:0/Welcome!;" +
