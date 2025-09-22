@@ -1,6 +1,6 @@
 package Tests;
 
-import Server.DeviceMapper;
+import Server.DeviceConstants;
 import Server.IOPort;
 import Server.Message;
 
@@ -18,13 +18,7 @@ public class TestMainForScreen {
         // The IOPort for the main program will act as a SERVER.
         // It listens on the PUMP_SERVER_PORT for the GasPumpUI client to connect.
         // The IOPort constructor is blocking and will wait here until a client connects.
-        IOPort mainServerPort = new IOPort(DeviceMapper.MAIN_TO_SCREEN);
-
-        // Check if the connection failed.
-        if (mainServerPort.isClosed()) {
-            System.err.println("Failed to initialize server port or the client did not connect. Exiting.");
-            return;
-        }
+        IOPort screenConnection = new IOPort(DeviceConstants.SCREEN_HOSTNAME, DeviceConstants.SCREEN_PORT);
 
         System.out.println("✅ GasPumpUI client has connected successfully.");
 
@@ -41,13 +35,13 @@ public class TestMainForScreen {
             Message screenUpdate = new Message(initialScreenMessage);
 
             System.out.println("🚀 Sending initial screen setup message...");
-            mainServerPort.send(screenUpdate);
+            screenConnection.send(screenUpdate);
             System.out.println("Message sent. Now listening for input from the UI...");
 
             // Loop indefinitely to read and print messages from the GasPumpUI.
-            while (!mainServerPort.isClosed()) {
+            while (true) {
                 // read() is a blocking call that waits for a message to arrive.
-                Message receivedMsg = mainServerPort.get();
+                Message receivedMsg = screenConnection.get();
 
                 if (receivedMsg != null) {
                     System.out.println("RECEIVED from UI: \"" + receivedMsg.getContent() + "\"");
@@ -55,7 +49,7 @@ public class TestMainForScreen {
             }
         } finally {
             System.out.println("Closing server port.");
-            mainServerPort.close();
+            screenConnection.close();
             System.out.println("--- Main Program Simulation Finished ---");
         }
     }

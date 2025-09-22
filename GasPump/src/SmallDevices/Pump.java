@@ -1,12 +1,14 @@
 package SmallDevices;
 
+import Server.DeviceConstants;
 import Server.IOPort;
+import Server.IOPortServer;
 import Server.Message;
 
 import java.io.IOException;
 
-public class Pump {
-    private final IOPort statusPort = new IOPort("pumpToMain");
+public class Pump { ;
+    private final IOPortServer statusPort = new IOPortServer(DeviceConstants.PUMP_PORT);
 
     public Pump() {
         System.out.println("Pump started up...");

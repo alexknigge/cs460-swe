@@ -1,7 +1,9 @@
 package SmallDevices;
 
 
+import Server.DeviceConstants;
 import Server.IOPort;
+import Server.IOPortServer;
 import Server.Message;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
@@ -43,13 +45,13 @@ import java.util.concurrent.TimeUnit;
 
 public class CardReader extends Application {
 
-    private static IOPort commManager;
+    private static IOPortServer commManager;
     Rectangle outerRect;
 
     public static void main(String[] args) throws InterruptedException {
         // launch(args);
         // TODO: Change this, basically just for demo purposes
-        commManager = new IOPort("cardReaderToMain");
+        commManager = new IOPortServer(DeviceConstants.CARD_READER_PORT);
         while (true) {
             String initCard = "t:01/s:3/f:2/c:0/Tap to Pay Now;" +
                     "t:2/s:2/f:1/c:0/Cancel;" + "b:1/m;" +

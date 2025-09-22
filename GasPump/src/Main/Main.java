@@ -1,19 +1,28 @@
 package Main;
 
+import Server.DeviceConstants;
 import Server.IOPort;
 import Server.Message;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.concurrent.TimeUnit;
 
 // Main.Main
 public class Main {
     public static void main(String[] args) throws InterruptedException, IOException {
-        IOPort mainToScreen = new IOPort("MainToScreen");
-        //CommPort mainToPump = new CommPort("MainToPump");
-        IOPort mainToFlowMeter = new IOPort("MainToFlowMeter");
-        IOPort mainToCardReader = new IOPort("MainToCardReader");
+        System.out.println("Connecting to Devices... (Make sure devices are turned on first)");
+        IOPort screenConnection = new IOPort(DeviceConstants.SCREEN_HOSTNAME,
+                DeviceConstants.SCREEN_PORT);
+        System.out.println("Successfully connected to Screen.");
+        /*IOPort pumpConnection = new IOPort(DeviceConstants.PUMP_HOSTNAME,
+                DeviceConstants.PUMP_PORT);
+        System.out.println("Successfully connected to Pump."); */
+        IOPort flowMeterConnection = new IOPort(DeviceConstants.FLOW_METER_HOSTNAME,
+                DeviceConstants.FLOW_METER_PORT);
+        System.out.println("Successfully connected to Flow Meter.");
+        IOPort cardReaderConnection = new IOPort(DeviceConstants.CARD_READER_HOSTNAME,
+                DeviceConstants.CARD_READER_PORT);
+        System.out.println("Successfully connected to Card Reader.");
 
         while (true) {
             String initialScreenMessage = "t:01/s:3/f:2/c:0/Welcome!;" +
@@ -23,40 +32,40 @@ public class Main {
                     "t:6/s:2/f:1/c:1/93;b:6/m//";
 
             Message screenUpdate = new Message(initialScreenMessage);
-            mainToScreen.send(screenUpdate);
+            screenConnection.send(screenUpdate);
 
             System.out.println("[SERVER] Waiting for card...");
             TimeUnit.SECONDS.sleep(5);
 
-            screenUpdate = mainToCardReader.get();
-            mainToScreen.send(screenUpdate);
+            screenUpdate = cardReaderConnection.get();
+            screenConnection.send(screenUpdate);
 
             TimeUnit.SECONDS.sleep(5);
 
-            screenUpdate = mainToCardReader.get();
-            mainToScreen.send(screenUpdate);
+            screenUpdate = cardReaderConnection.get();
+            screenConnection.send(screenUpdate);
 
 
             TimeUnit.SECONDS.sleep(5);
             System.out.println("[SERVER] Pumping gas...");
             //System.out.println("[SERVER] Starting up flow meter...");
 
-            mainToFlowMeter.send(new Message("CMD:START"));
+            flowMeterConnection.send(new Message("CMD:START"));
             TimeUnit.SECONDS.sleep(2);
-            Message flowMeter = mainToFlowMeter.get();
+            Message flowMeter = flowMeterConnection.get();
             while (true) {
                 if (flowMeter != null) {
                     if (flowMeter.toString().contains("FLOW:STOP")) {
                         break;
                     }
                 }
-                mainToScreen.send(flowMeter);
+                screenConnection.send(flowMeter);
                 System.out.println(flowMeter);
-                flowMeter = mainToFlowMeter.get();
+                flowMeter = flowMeterConnection.get();
             }
             TimeUnit.SECONDS.sleep(2);
-            flowMeter = mainToFlowMeter.get();
-            mainToScreen.send(flowMeter);
+            flowMeter = flowMeterConnection.get();
+            screenConnection.send(flowMeter);
             System.out.println("Done pumping");
             TimeUnit.SECONDS.sleep(5);
 
@@ -66,7 +75,7 @@ public class Main {
                     "t:04/s:2/f:1/c:0/;" +
                     "t:05/s:2/f:1/c:0/;" +
                     "t:06/s:2/f:1/c:0//");
-            mainToScreen.send(finalMessage);
+            screenConnection.send(finalMessage);
             TimeUnit.SECONDS.sleep(5);
         }
 
