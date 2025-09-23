@@ -1,8 +1,9 @@
 package SmallDevices;
 
 import Server.IOPort;
+import Server.IOPortServer;
 import Server.Message;
-import Server.DeviceMapper;
+import Server.DeviceConstants;
 
 import java.text.DecimalFormat;
 import java.util.Random;
@@ -39,7 +40,7 @@ import javafx.scene.paint.Color;
  */
 public class FlowMeter {
     private final Consumer<String> emit;
-    private final IOPort flowPort = new IOPort(DeviceMapper.FLOW_METER_TO_MAIN);
+    private final IOPortServer flowPort = new IOPortServer(DeviceConstants.FLOW_METER_PORT);
     private volatile double rateGalPerSec;
     private volatile double pricePerGallon;
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
