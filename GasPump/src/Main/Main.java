@@ -50,7 +50,7 @@ public class Main {
             System.out.println("[SERVER] Pumping gas...");
             //System.out.println("[SERVER] Starting up flow meter...");
 
-            flowMeterConnection.send(new Message("CMD:START"));
+            flowMeterConnection.send(new Message("CMD:START rate=0.1 ppg=3.25 c:3"));
             TimeUnit.SECONDS.sleep(2);
             Message flowMeter = flowMeterConnection.get();
             while (true) {

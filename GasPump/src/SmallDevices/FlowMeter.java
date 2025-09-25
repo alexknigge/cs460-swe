@@ -43,6 +43,7 @@ public class FlowMeter {
     private final IOPortServer flowPort = new IOPortServer(DeviceConstants.FLOW_METER_PORT);
     private volatile double rateGalPerSec;
     private volatile double pricePerGallon;
+    private volatile String gasType = "";
     private final ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
     private final Random rand = new Random(System.currentTimeMillis());
     private java.util.function.Consumer<Boolean> onStop;
@@ -50,7 +51,6 @@ public class FlowMeter {
     private long lastStartNanos;
     private double accSeconds = 0.0;
 
-    // --- lightweight status values for the optional embedded GUI ---
     private volatile double lastGallons = 0.0;
     private volatile double lastTotal   = 0.0;
 
@@ -63,15 +63,14 @@ public class FlowMeter {
         this.pricePerGallon = ppg;
     }
 
-    /** optional callback when we stop; true = auto-stop (timer), false = manual/cancel */
     public void setOnStop(java.util.function.Consumer<Boolean> onStop) {
         this.onStop = onStop;
     }
 
     /** show zeros in the two flow cells */
     public void initLayout() {
-        sendPort("t:3/s:3/st:2/c:0/0.000 gal;"   // row 1 down -> now cell 3
-                + "t:5/s:3/st:2/c:0/$0.000;");   // and price in cell 5
+        sendPort("t:3/s:3/st:2/c:0/0.000 gal;"
+                + "t:5/s:3/st:2/c:0/$0.000;");
     }
 
     /** start pumping; if already running, no-op */
@@ -85,8 +84,7 @@ public class FlowMeter {
         exec.scheduleAtFixedRate(this::tick, 0, 100, TimeUnit.MILLISECONDS);
 
         // demo: random auto-stop (5–15s)
-        int stopSeconds = 5 + rand.nextInt(11);
-        exec.schedule(() -> { if (running) stop(true); }, stopSeconds, TimeUnit.SECONDS);
+        // Removed per instructions
     }
 
     /** pause (manual) */
@@ -98,11 +96,12 @@ public class FlowMeter {
         accSeconds += (System.nanoTime() - lastStartNanos) / 1e9;
         running = false;
         sendPort("FLOW:STOP reason=" + (auto ? "auto" : "manual"));
-        // After stopping, emit a summary screen for ScreenParser
+        // After stopping, a summary screen for ScreenParser
         double gallons = lastGallons;
         double total   = lastTotal;
         String summary =
             "t:01/s:2/st:2/c:0/" + (auto ? "Sale Complete" : "Pumping Stopped") + ";" +
+            "t:2.5/s:2/st:1/c:0/Gas: " + gasType + ";" +
             "t:2/s:2/st:1/c:0/Total Dispensed;" +
             "t:3/s:3/st:2/c:0/" + G.format(gallons) + " gal;" +
             "t:4/s:2/st:1/c:0/Total Price;" +
@@ -128,7 +127,7 @@ public class FlowMeter {
      * 2) if running, compute gallons/total and emit both UI + FLOW:TICK
      */
     private void tick() {
-        // 1) poll inbound messages (no blocking, no threads required)
+        // 1) poll inbound messages
         pollCommands();
 
         // 2) update if running
@@ -137,13 +136,10 @@ public class FlowMeter {
         double gallons = elapsed * rateGalPerSec;
         double total   = gallons * pricePerGallon;
 
-        // keep lightweight copies for the embedded status UI
         lastGallons = gallons;
         lastTotal   = total;
 
         sendPort(updateMessage(gallons, total));
-        //sendPort("FLOW:TICK gallons=" + G.format(gallons) +
-        //        " total=" + $.format(total).substring(1));
     }
 
     /**
@@ -163,11 +159,23 @@ public class FlowMeter {
     /** understand simple wire commands from Main */
     private void handlePortCommand(String msg) {
         if (msg.startsWith("CMD:START")) {
-            // allow optional overrides: rate=<gps> ppg=<price>
+            // allow optional overrides: rate=<gps> ppg=<price> gas=<type>
             double r = getDoubleParam(msg, "rate", rateGalPerSec);
             double p = getDoubleParam(msg, "ppg",  pricePerGallon);
             rateGalPerSec = r;
             pricePerGallon = p;
+            int cIndex = msg.indexOf("c:");
+            if (cIndex >= 0 && cIndex + 2 < msg.length()) {
+                char code = msg.charAt(cIndex + 2);
+                switch (code) {
+                    case '3' -> gasType = "87 Octane";
+                    case '4' -> gasType = "91 Octane";
+                    case '1' -> gasType = "93 Octane";
+                    default  -> gasType = "Unknown";
+                }
+            } else {
+                gasType = "";
+            }
             initLayout();
             start();
         } else if (msg.equals("CMD:PAUSE")) {
@@ -189,7 +197,8 @@ public class FlowMeter {
 
     // updateMessage(...)
     private String updateMessage(double gallons, double total) {
-        return "t:3/s:3/st:2/c:0/" + G.format(gallons) + " gal;"
+        return "t:2.5/s:2/st:1/c:0/;"
+                + "t:3/s:3/st:2/c:0/" + G.format(gallons) + " gal;"
                 + "t:5/s:3/st:2/c:0/" + $.format(total)   + ";";
     }
 
@@ -207,7 +216,6 @@ public class FlowMeter {
     /**
      * Minimal in-file status UI for demo/debug.
      * Lives inside FlowMeter so the device can show it is "flowing" without affecting normal I/O behavior.
-     * It polls `pollCommands()` and mirrors the last gallons/total; turns red when stopped.
      */
     public static class StatusUI extends Application {
         private static volatile FlowMeter bound;
@@ -215,6 +223,7 @@ public class FlowMeter {
 
         private Label stateLbl, galLbl, totLbl;
         private Label rateLbl;
+        private Label gasLbl;
         private Rectangle pipeBase, pipeFlow;
         private double flowOffset = 0;
 
@@ -223,11 +232,13 @@ public class FlowMeter {
             stateLbl = new Label("Waiting...");
             galLbl   = new Label("Gallons: 0.000");
             totLbl   = new Label("Total:   $0.000");
+            gasLbl   = new Label("Gas: ");
             rateLbl = new Label("Rate: 0.000 gal/s");
 
             stateLbl.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
             galLbl.setStyle("-fx-font-size: 16px;");
             totLbl.setStyle("-fx-font-size: 16px;");
+            gasLbl.setStyle("-fx-font-size: 16px;");
             rateLbl.setStyle("-fx-font-size: 16px;");
 
             // Simple pipe (a gray tube) with gas flowing
@@ -253,6 +264,7 @@ public class FlowMeter {
                     pipePane,
                     new HBox(8, galLbl),
                     new HBox(8, totLbl),
+                    new HBox(8, gasLbl),
                     new HBox(8, rateLbl)
             );
             root.setPadding(new Insets(12));
@@ -280,6 +292,7 @@ public class FlowMeter {
                     }
                     galLbl.setText("Gallons: " + G.format(fm.lastGallons));
                     totLbl.setText("Total:   " + $.format(fm.lastTotal));
+                    gasLbl.setText("Gas: " + fm.gasType);
 
                     // animate pipe when flowing
                     if (fm.running) {
@@ -300,13 +313,12 @@ public class FlowMeter {
     /**
      * Main entry point for running FlowMeter standalone for test/demo.
      * Creates the device, binds the optional StatusUI, and launches JavaFX.
-     * NOTE: In the integrated system, Main should send "CMD:START ..." over IOPort; this demo does not auto-start.
      */
     public static void main(String[] args){
         // Device sends screen-protocol messages out over its port to Main; here we also log them for visibility.
         FlowMeter flow = new FlowMeter(msg -> System.out.println("[UI] " + msg), 0.1, 3.25);
 
-        // Bind the optional in-file status window (safe no-op if JavaFX not desired)
+        // Bind the status window
         StatusUI.bind(flow);
         javafx.application.Application.launch(StatusUI.class, args);
     }
