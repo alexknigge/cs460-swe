@@ -16,4 +16,7 @@ public class DeviceConstants {
     public static final String SCREEN_HOSTNAME = "localhost";
     public static final int SCREEN_PORT = 1237;
 
+    public static final String BANK_HOSTNAME = "localhost";
+    public static final int BANK_PORT = 1238;
+
 }
