@@ -56,7 +56,12 @@ public class ScreenParser {
             int color = Integer.parseInt(parts[3].substring(2));
             String text = parts[4];
             Label label = new Label(text);
+
+            label.setWrapText(true);            // allows multi-line text
+            label.setAlignment(Pos.CENTER);     // center text inside the label
             applyFont(label, size, styleStr);
+            applyFont(label, size, styleStr);
+
             StackPane cellPane = new StackPane(label);
             cellPane.setAlignment(Pos.CENTER);
             applyBackgroundColor(cellPane, color);

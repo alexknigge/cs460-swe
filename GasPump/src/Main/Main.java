@@ -27,9 +27,9 @@ public class Main {
         while (true) {
             String initialScreenMessage = "t:01/s:3/f:2/c:0/Welcome!;" +
                     "t:2/s:2/f:1/c:0/Select Grade;" +
-                    "t:4/s:2/f:1/c:3/87 Octane;$4.49;b:4/m;" +
-                    "t:5/s:2/f:1/c:4/91 Octane;$4.99;b:5/m;" +
-                    "t:6/s:2/f:1/c:1/93;b:6/m//";
+                    "t:4/s:2/f:1/c:3/Regular (87 Octane) - $4.49;b:4/m;" +
+                    "t:5/s:2/f:1/c:4/Premium (91) - $4.99;b:5/m;" +
+                    "t:6/s:2/f:1/c:1/Super (93) - $5.25;b:6/m//";
 
             Message screenUpdate = new Message(initialScreenMessage);
             screenConnection.send(screenUpdate);
@@ -59,7 +59,15 @@ public class Main {
                         break;
                     }
                 }
-                screenConnection.send(flowMeter);
+                Message fuelingScreen = new Message(
+                        "t:01/s:3/f:2/c:0/Pumping Fueling;" +
+                                "t:2/s:2/f:1/c:0/Press Pause to temporarily stop;" +
+                                "t:3/s:2/f:1/c:2/Cancel;b:3/m;" +
+                                "t:4/s:2/f:1/c:3/Help;b:4/m;" +
+                                "t:5/s:2/f:1/c:4/Pause;b:5/m//"
+                );
+                screenConnection.send(fuelingScreen);
+                //screenConnection.send(flowMeter);
                 System.out.println(flowMeter);
                 flowMeter = flowMeterConnection.get();
             }
