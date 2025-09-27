@@ -19,4 +19,7 @@ public class DeviceConstants {
     public static final String BANK_HOSTNAME = "localhost";
     public static final int BANK_PORT = 1238;
 
+    public static final String GAS_STATION_HOSTNAME = "localhost";
+    public static final int GAS_STATION_PORT = 1239;
+
 }
