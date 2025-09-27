@@ -2,7 +2,6 @@ package SmallDevices;
 
 
 import Server.DeviceConstants;
-import Server.IOPort;
 import Server.IOPortServer;
 import Server.Message;
 import javafx.animation.PauseTransition;
@@ -22,53 +21,40 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.net.MalformedURLException;
 
 /**
- * @Author: Dustin Ferguson
- * </p>
- * Card reader is designed to receive 4 types of messages:
- * (1) The string "approved//" from the control device when a transaction is
- * approved;
- * (2) The string "declined//" from the control device when a transaction is
- * approved;
- * (3) The String "complete//" from the control device when a transaction is
- * complete;
- * (4) The String "error//" from the control device when a transaction is
- * complete;
- * The color of the physical card reader will change based on messages received.
- * </p>
- * Card reader will send only 2 types of messages to main control unit:
- * (1) The string of 16 ints representing the credit card number followed by "//".
- * (2) The string "error//" if there is a card read error.
+ * Simulates a physical card reader device. It runs as a JavaFX application
+ * and listens for a connection from the main controller. When the user simulates
+ * a card tap, it sends a 16-digit number to the controller. It also changes color
+ * based on "approved" or "declined" messages it receives back.
  */
-
 public class CardReader extends Application {
 
-    private static IOPortServer commManager;
-    Rectangle outerRect;
+    private IOPortServer commManager;
+    private Rectangle outerRect;
 
-    public static void main(String[] args) throws InterruptedException {
-        // launch(args);
-        // TODO: Change this, basically just for demo purposes
-        commManager = new IOPortServer(DeviceConstants.CARD_READER_PORT);
-        while (true) {
-            String initCard = "t:01/s:3/f:2/c:0/Tap to Pay Now;" +
-                    "t:2/s:2/f:1/c:0/Cancel;" + "b:1/m;" +
-                    "t:3/s:2/f:1/c:0/Help;" + "b:2/m;" +
-                    "t:04/s:2/f:1/c:0/;" + "//";
-            commManager.send(new Message(initCard));
-            String paymentAccepted = "t:01/s:3/f:2/c:0/Payment Accepted;" +
-                    "t:2/s:2/f:1/c:0/Thank you!;" +
-                    "t:3/s:2/f:1/c:0/You may begin fueling now;" +
-                    "t:04/s:2/f:1/c:0/;" + "//";
-            commManager.send(new Message(paymentAccepted));
-            TimeUnit.SECONDS.sleep(8);
-        }
+    /**
+     * The main entry point for the CardReader application.
+     * This simply launches the JavaFX UI.
+     */
+    public static void main(String[] args) {
+        launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
+        // The IOPort must be initialized here, within the JavaFX application thread.
+        this.commManager = new IOPortServer(DeviceConstants.CARD_READER_PORT);
+
+        // Start a separate thread to listen for messages from the MainController
+        // This prevents the UI from freezing while waiting for network input.
+        Thread messageListenerThread = new Thread(this::listenForMessages);
+        messageListenerThread.setDaemon(true); // Allows the app to exit cleanly
+        messageListenerThread.start();
+
+        // Create and display the UI
         BorderPane root = createUI();
         Scene scene = new Scene(root, 600, 300);
         primaryStage.setTitle("Card Reader UI Mockup");
@@ -76,8 +62,28 @@ public class CardReader extends Application {
         primaryStage.show();
     }
 
-    private BorderPane createUI() {
+    /**
+     * Continuously listens for incoming messages from the MainController and
+     * processes them on the JavaFX application thread.
+     */
+    private void listenForMessages() {
+        while (true) {
+            Message msg = commManager.get();
+            if (msg != null) {
+                // UI updates must be run on the JavaFX application thread.
+                Platform.runLater(() -> processMessage(msg.getContent()));
+            }
+            try {
+                // A brief pause to prevent the loop from consuming 100% CPU.
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
 
+    private BorderPane createUI() {
         // Outer rectangle
         outerRect = new Rectangle(300, 200, Color.GREEN);
         outerRect.setArcWidth(30);
@@ -89,8 +95,16 @@ public class CardReader extends Application {
         innerRect.setArcHeight(30);
 
         // Load tapHere image
-        Image img = new Image("file:GasPump/resources/tapHere.png");
-        ImageView imageView = new ImageView(img);
+        ImageView imageView = new ImageView();
+        try {
+            File file = new File("resources/tapHere.png");
+            String localUrl = file.toURI().toURL().toString();
+            Image img = new Image(localUrl);
+            imageView.setImage(img);
+        } catch (MalformedURLException e) {
+            System.err.println("Error loading tapHere.png: " + e.getMessage());
+        }
+
         imageView.setFitWidth(180);
         imageView.setFitHeight(180);
         imageView.setPreserveRatio(true);
@@ -98,47 +112,55 @@ public class CardReader extends Application {
         // Side Panel
         Button payButton = new Button("(Simulate Card Tap)");
         payButton.setOnAction(e -> {
-            commManager.send(new Message(generate16() + "//"));
-            outerRect.setFill(Color.ORANGE);
+            commManager.send(new Message(generate16DigitNumber() + "//"));
+            outerRect.setFill(Color.ORANGE); // Change color to indicate processing
         });
         VBox buttonBox = new VBox(30, payButton);
         buttonBox.setPadding(new Insets(20));
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
 
-
-        // Main.Main layout
+        // Main layout
         BorderPane root = new BorderPane();
         StackPane stack = new StackPane(outerRect, innerRect, imageView);
         root.setCenter(stack);
         root.setRight(buttonBox);
         return root;
-
     }
 
-    public void processMessage(String message) {
-        if (message.equalsIgnoreCase("approved//")) {
-            outerRect.setFill(Color.LIMEGREEN);
-        } else if (message.equalsIgnoreCase("declined//")) {
-            outerRect.setFill(Color.RED);
-            PauseTransition delay = new PauseTransition(Duration.seconds(5));
-            delay.setOnFinished(event ->
-                    Platform.runLater(() -> outerRect.setFill(Color.GREEN))
-            );
-            delay.play();
-        } else if (message.equalsIgnoreCase("complete//")) {
-            outerRect.setFill(Color.GREEN);
-        } else if (message.equalsIgnoreCase("error")) {
-            outerRect.setFill(Color.RED);
-        } else {
-            outerRect.setFill(Color.GREEN);
+    /**
+     * Processes messages received from the MainController to update the UI color.
+     *
+     * @param message The raw message content (e.g., "approved//").
+     */
+    private void processMessage(String message) {
+        String cleanMessage = message.replace("//", "").trim().toLowerCase();
+        switch (cleanMessage) {
+            case "approved" -> outerRect.setFill(Color.LIMEGREEN);
+            case "declined" -> {
+                outerRect.setFill(Color.RED);
+                // After 5 seconds, revert the color back to green.
+                PauseTransition delay = new PauseTransition(Duration.seconds(5));
+                delay.setOnFinished(event -> outerRect.setFill(Color.GREEN));
+                delay.play();
+            }
+            case "complete" -> outerRect.setFill(Color.GREEN);
+            case "error" -> outerRect.setFill(Color.RED);
+            default -> // Default to green if the message is unrecognized
+                    outerRect.setFill(Color.GREEN);
         }
     }
 
-    private String generate16() {
+    /**
+     * Generates a random 16-digit string to simulate a credit card number.
+     *
+     * @return A 16-character string of numbers.
+     */
+    private String generate16DigitNumber() {
         StringBuilder sb = new StringBuilder(16);
         java.util.Random r = new java.util.Random();
-        for (int i = 0; i < 16; i++) sb.append(r.nextInt(10));
+        for (int i = 0; i < 16; i++) {
+            sb.append(r.nextInt(10));
+        }
         return sb.toString();
     }
-
 }
