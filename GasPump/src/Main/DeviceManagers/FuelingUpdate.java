@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

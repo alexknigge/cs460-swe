@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 import Server.DeviceConstants;
 import Server.IOPort;

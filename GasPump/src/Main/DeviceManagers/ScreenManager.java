@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 import Server.DeviceConstants;
 import Server.IOPort;
@@ -8,11 +8,10 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 /**
- * Manages all display output to the customer-facing screen.
+ * Manages all display output and input for the customer-facing screen.
  * This class is responsible for constructing and sending well-formed screen protocol
- * messages to the GasPumpUI application. It provides methods for showing
- * pre-defined screen layouts (e.g., welcome, select grade) as well as dynamic
- * content like the real-time fueling status.
+ * messages to the GasPumpUI application. It also handles receiving user input
+ * in the form of button presses from the screen.
  */
 public class ScreenManager {
     private static final String CMD_TERMINATOR = "//";
@@ -27,6 +26,36 @@ public class ScreenManager {
     public ScreenManager() {
         this.screenConnection = new IOPort(DeviceConstants.SCREEN_HOSTNAME, DeviceConstants.SCREEN_PORT);
     }
+
+    /**
+     * Waits for any button to be pressed on the touch screen.
+     * This is a polling call with a timeout.
+     *
+     * @param timeoutMillis The maximum time to wait for a button press in milliseconds.
+     * @return A string representing the cell ID of the pressed button (e.g., "4"),
+     * or {@code null} if the action timed out.
+     */
+    public String waitForButtonPress(long timeoutMillis) {
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < timeoutMillis) {
+            Message response = screenConnection.get();
+            if (response != null) {
+                String content = response.getContent();
+                // Protocol is "b:<cell_id>//". We need to extract the cell_id.
+                if (content.startsWith("b:") && content.endsWith("//")) {
+                    return content.substring(2, content.length() - 2).trim();
+                }
+            }
+            try {
+                Thread.sleep(50); // Poll every 50ms
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
+        return null; // Timeout
+    }
+
 
     /**
      * Displays the initial welcome screen to the customer.

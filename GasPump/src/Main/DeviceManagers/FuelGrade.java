@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 /**
  * A simple, immutable data carrier class representing a type of fuel.

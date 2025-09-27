@@ -22,4 +22,7 @@ public class DeviceConstants {
     public static final String GAS_STATION_HOSTNAME = "localhost";
     public static final int GAS_STATION_PORT = 1239;
 
+    public static final String HOSE_HOSTNAME = "localhost";
+    public static final int HOSE_PORT = 1240;
+
 }

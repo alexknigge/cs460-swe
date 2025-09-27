@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 import Server.DeviceConstants;
 import Server.IOPort;
@@ -14,15 +14,15 @@ public class PumpAssemblyManager {
 
     private final IOPort pumpConnection;
     private final IOPort flowMeterConnection;
-    // private IOPort hoseConnection; // Placeholder for future hose sensor integration
+    private final IOPort hoseConnection;
 
     /**
-     * Initializes the manager and establishes connections to the pump and flow meter devices.
+     * Initializes the manager and establishes connections to the pump, flow meter, and hose devices.
      */
     public PumpAssemblyManager() {
         this.pumpConnection = new IOPort(DeviceConstants.PUMP_HOSTNAME, DeviceConstants.PUMP_PORT);
         this.flowMeterConnection = new IOPort(DeviceConstants.FLOW_METER_HOSTNAME, DeviceConstants.FLOW_METER_PORT);
-        // this.hoseConnection = new IOPort("localhost", HOSE_PORT); // Example
+        this.hoseConnection = new IOPort(DeviceConstants.HOSE_HOSTNAME, DeviceConstants.HOSE_PORT);
     }
 
     /**
@@ -34,14 +34,8 @@ public class PumpAssemblyManager {
      */
     public void startPumping(FuelGrade grade) {
         System.out.println("Pump Assembly: Starting pump for " + grade.name());
-        // Command the physical pump motor to turn on.
         pumpConnection.send(new Message("on"));
-
-        // Command the flow meter to start its measurement cycle.
-        // The FlowMeter simulation uses CMD:START with parameters for rate, ppg, and gas type.
-        // For this simulation, we'll use the price from the FuelGrade object.
-        String startCommand = String.format("CMD:START ppg=%.2f gas=%s//",
-                grade.pricePerGallon(), grade.name());
+        String startCommand = String.format("CMD:START ppg=%.2f gas=%s//", grade.pricePerGallon(), grade.name());
         flowMeterConnection.send(new Message(startCommand));
     }
 
@@ -51,9 +45,7 @@ public class PumpAssemblyManager {
      */
     public void stopPumping() {
         System.out.println("Pump Assembly: Stopping pump.");
-        // Turn off the physical pump motor.
         pumpConnection.send(new Message("off"));
-        // Pause the flow meter's counting.
         flowMeterConnection.send(new Message("CMD:PAUSE//"));
     }
 
@@ -72,30 +64,26 @@ public class PumpAssemblyManager {
         return null;
     }
 
-    // --- Placeholder methods for hose sensor integration ---
-
     /**
-     * Checks if the hose is properly attached to the vehicle.
-     * NOTE: This is a placeholder. The Hose simulation currently has no network interface.
+     * Checks for and processes events from the hose sensors.
+     * This is a non-blocking method that polls for new messages.
      *
-     * @return Always returns {@code true} in the current simulation.
+     * @return A {@link HoseEvent} enum representing the latest event from the hose,
+     * or {@code null} if no new event has occurred.
      */
-    public boolean isHoseAttached() {
-        // Future logic: Read from hoseConnection and return status.
-        return true;
+    public HoseEvent getHoseEvent() {
+        Message eventMessage = hoseConnection.get();
+        if (eventMessage != null) {
+            String content = eventMessage.getContent().replace("//", "").trim();
+            return switch (content) {
+                case "removed" -> HoseEvent.REMOVED;
+                case "attached" -> HoseEvent.ATTACHED;
+                case "tank-full" -> HoseEvent.TANK_FULL;
+                default -> null;
+            };
+        }
+        return null;
     }
-
-    /**
-     * Checks if the vehicle's tank is full.
-     * NOTE: This is a placeholder. The Hose/Tank simulation currently has no network interface.
-     *
-     * @return Always returns {@code false} in the current simulation.
-     */
-    public boolean isTankFull() {
-        // Future logic: Read a "tank-full" message from a sensor.
-        return false;
-    }
-
 
     /**
      * Closes connections to all pump assembly devices.
@@ -103,5 +91,15 @@ public class PumpAssemblyManager {
     public void close() {
         pumpConnection.close();
         flowMeterConnection.close();
+        hoseConnection.close();
+    }
+
+    /**
+     * Represents the possible events received from the hose sensors.
+     */
+    public enum HoseEvent {
+        REMOVED,  // Nozzle removed from the pump holster
+        ATTACHED, // Nozzle returned to the pump holster
+        TANK_FULL // Vehicle tank is full
     }
 }

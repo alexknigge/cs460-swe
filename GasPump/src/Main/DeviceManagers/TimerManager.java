@@ -1,4 +1,4 @@
-package Main;
+package Main.DeviceManagers;
 
 /**
  * A non-blocking timer manager for handling inactivity timeouts in the gas pump's state machine.
