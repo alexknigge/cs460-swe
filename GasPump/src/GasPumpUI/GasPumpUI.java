@@ -5,13 +5,16 @@ import Server.IOPortServer;
 import Server.Message;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -39,7 +42,7 @@ public class GasPumpUI extends Application {
 
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
-        Scene scene = new Scene(gridPane, 400, 600);
+        Scene scene = new Scene(gridPane, 500, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -109,10 +112,19 @@ public class GasPumpUI extends Application {
         int row = cellNum / NUM_COLS;
         int logicalCol = cellNum % NUM_COLS;
 
+        if (node instanceof StackPane pane) {
+            pane.setMaxWidth(Double.MAX_VALUE);
+            pane.setMaxHeight(Double.MAX_VALUE);
+        }
+
         if (cellId.length() > 1 && Character.isDigit(cellId.charAt(1))) { // Combined field
             GridPane.setColumnSpan(node, 2);
+            GridPane.setHalignment(node, HPos.CENTER); // center horizontally
+            GridPane.setValignment(node, VPos.CENTER); // center vertically
             gridPane.add(node, 1, row);
         } else { // Single field
+            GridPane.setHalignment(node, HPos.CENTER);
+            GridPane.setValignment(node, VPos.CENTER);
             gridPane.add(node, logicalCol + 1, row);
         }
     }
@@ -129,11 +141,16 @@ public class GasPumpUI extends Application {
         GridPane pane = new GridPane();
         pane.setAlignment(Pos.CENTER);
         pane.setStyle("-fx-background-color: #D3D3D3;");
+        pane.setHgap(10);
+        pane.setVgap(10);
+        pane.setPrefSize(500, 700);
+
         ColumnConstraints buttonCol = new ColumnConstraints();
-        buttonCol.setPercentWidth(15);
+        buttonCol.setPercentWidth(25);
         ColumnConstraints textCol = new ColumnConstraints();
         textCol.setPercentWidth(35);
         pane.getColumnConstraints().addAll(buttonCol, textCol, textCol, buttonCol);
+
         for (int i = 0; i < NUM_ROWS; i++) {
             RowConstraints rowConst = new RowConstraints();
             rowConst.setPercentHeight(100.0 / NUM_ROWS);
