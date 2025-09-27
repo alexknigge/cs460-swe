@@ -27,136 +27,148 @@ import java.util.Random;
  * messages (e.g., "removed//", "attached//", "tank-full//") to the main controller.
  */
 public class Hose extends Application {
-
+    
     private boolean connected = false; // Represents connection to the car, not the pump holster
     private Timeline fillTimeline;
     private IOPortServer commManager;
-
+    
     public static void main(String[] args) {
         launch(args);
     }
-
+    
     @Override
     public void start(Stage primaryStage) {
         // Initialize the communication port to act as a server
         this.commManager = new IOPortServer(DeviceConstants.HOSE_PORT);
-
+        
         // --- UI Components ---
         double latchRadius = 50;
         double connectorW = 200;
         double connectorH = 2 * latchRadius;
         double hoseHeight = connectorH / 3;
         double hoseLength = 400;
-
+        
         Rectangle hose = new Rectangle(-hoseLength, connectorH / 2 - hoseHeight / 2, hoseLength, hoseHeight);
         hose.setFill(Color.BLACK);
-
+        
         Rectangle connector = new Rectangle(0, 0, connectorW, connectorH);
         connector.setArcWidth(60);
         connector.setArcHeight(60);
         connector.setFill(Color.SILVER);
-
+        
         Circle latch = new Circle(latchRadius);
         latch.setFill(null);
         latch.setStroke(Color.RED);
         latch.setStrokeWidth(15);
         latch.setCenterX(connectorW - latchRadius);
         latch.setCenterY(connectorH / 2);
-
+        
         Pane hoseAndLatchPane = new Pane(hose, connector, latch);
         hoseAndLatchPane.setPrefSize(connectorW, connectorH);
         hoseAndLatchPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-
+        
         HBox centerRow = new HBox(hoseAndLatchPane);
         centerRow.setAlignment(Pos.CENTER);
         VBox hoseAndLatchBox = new VBox(centerRow);
         hoseAndLatchBox.setAlignment(Pos.CENTER);
-
+        
         double tankWidth = 50, tankHeight = 150;
         Rectangle tankOutline = new Rectangle(tankWidth, tankHeight);
         tankOutline.setFill(null);
         tankOutline.setStroke(Color.BLACK);
         tankOutline.setStrokeWidth(2);
-
+        
         DoubleProperty fillPercent = new SimpleDoubleProperty(new Random().nextDouble() * (2.0 / 3.0));
         Rectangle tankFill = new Rectangle(tankWidth, tankHeight * fillPercent.get());
         tankFill.setFill(Color.GOLD);
         tankFill.heightProperty().bind(fillPercent.multiply(tankHeight));
-
+        
         StackPane tankPane = new StackPane(tankOutline, tankFill);
         tankPane.setAlignment(Pos.BOTTOM_CENTER);
-
+        
         VBox tankBox = new VBox(5, new Text("Tank"), tankPane);
         tankBox.setAlignment(Pos.CENTER);
         tankBox.setPadding(new Insets(10));
-
+        
         // --- Buttons and Event Handlers ---
         HBox buttonsRow = getButtonsHBox(latch, fillPercent);
         VBox bottomBox = new VBox(buttonsRow);
         bottomBox.setAlignment(Pos.CENTER);
         bottomBox.setPadding(new Insets(15));
-
+        
         // --- Layout ---
         BorderPane root = new BorderPane();
         root.setCenter(hoseAndLatchBox);
         root.setBottom(bottomBox);
         root.setRight(tankBox);
-
+        
         Scene scene = new Scene(root, 600, 360);
         primaryStage.setTitle("Gas Hose Mockup");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
+    
     private HBox getButtonsHBox(Circle latch, DoubleProperty fillPercent) {
-        Button connectButton = getConnectButton(latch);
-
-        Button fillButton = new Button("Fill");
-        fillButton.setOnAction(e -> {
-            if (!connected) {
-                System.out.println("Cannot fill: hose is disconnected from car!");
-                return;
-            }
-            if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.PAUSED) {
-                fillTimeline.play();
-                return;
-            }
-            if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING)
-                return;
-
-            double remaining = 1.0 - fillPercent.get();
-            if (remaining <= 0.0001) return;
-
-            double secondsFromEmptyToFull = 10.0; // flow rate
-            Duration dur = Duration.seconds(secondsFromEmptyToFull * remaining);
-            fillTimeline = new Timeline(new KeyFrame(dur, new KeyValue(fillPercent, 1.0, Interpolator.LINEAR)));
-            fillTimeline.setOnFinished(event -> {
-                // When filling is complete, send the "tank-full" message
-                System.out.println("Hose sending: tank-full//");
-                commManager.send(new Message("tank-full//"));
-            });
-            fillTimeline.play();
-        });
-
-        HBox buttonsRow = new HBox(10, connectButton, fillButton);
+        Button connectButton = getConnectButton(latch, fillPercent);
+        HBox buttonsRow = new HBox(10, connectButton); // no Fill button anymore
         buttonsRow.setAlignment(Pos.CENTER);
         return buttonsRow;
     }
-
-    private Button getConnectButton(Circle latch) {
+    
+    private Button getConnectButton(Circle latch, DoubleProperty fillPercent) {
         Button connectButton = new Button("Attach/Remove Nozzle");
         connectButton.setOnAction(e -> {
             connected = !connected;
             latch.setStroke(connected ? Color.LIMEGREEN : Color.RED);
-            // Send status message to the main controller
+            
+            // Notify main controller
             String message = connected ? "removed//" : "attached//";
             System.out.println("Hose sending: " + message);
             commManager.send(new Message(message));
-
-            if (!connected && fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING) {
-                fillTimeline.pause(); // pause when disconnected
+            
+            if (!connected) {
+                // Pause while disconnected
+                if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING) {
+                    fillTimeline.pause();
+                }
+            } else {
+                // Auto-start (or resume) when connected
+                startOrResumeFilling(fillPercent);
             }
         });
         return connectButton;
+    }
+    
+    private void startOrResumeFilling(DoubleProperty fillPercent) {
+        if (fillPercent.get() >= 0.9999) {
+            return; // already full
+        }
+        
+        if (fillTimeline != null) {
+            // If we had a timeline, just resume it when reconnected
+            if (fillTimeline.getStatus() == Animation.Status.PAUSED) {
+                fillTimeline.play();
+                return;
+            }
+            if (fillTimeline.getStatus() == Animation.Status.RUNNING) {
+                return; // already running
+            }
+        }
+        
+        // Create a fresh timeline from the current level to full
+        double remaining = 1.0 - fillPercent.get();
+        if (remaining <= 0.0001) return;
+        
+        double secondsFromEmptyToFull = 20.0; // your flow-rate visualization
+        Duration dur = Duration.seconds(secondsFromEmptyToFull * remaining);
+        
+        fillTimeline = new Timeline(
+                new KeyFrame(dur, new KeyValue(fillPercent, 1.0, Interpolator.LINEAR))
+        );
+        fillTimeline.setOnFinished(event -> {
+            System.out.println("Hose sending: tank-full//");
+            commManager.send(new Message("tank-full//"));
+        });
+        fillTimeline.play();
     }
 }
