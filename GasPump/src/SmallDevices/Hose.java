@@ -31,6 +31,7 @@ public class Hose extends Application {
     private boolean connected = false; // Represents connection to the car, not the pump holster
     private Timeline fillTimeline;
     private IOPortServer commManager;
+    private final java.util.Random rng = new java.util.Random();
     
     public static void main(String[] args) {
         launch(args);
@@ -130,6 +131,25 @@ public class Hose extends Application {
                 // Pause while disconnected
                 if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING) {
                     fillTimeline.pause();
+                }
+                
+                // If the tank just reached full, a "disconnect" indicates end of transaction.
+                // Reset the visible tank level to a new random starting value for the next customer.
+                if (fillTimeline != null
+                        && fillTimeline.getStatus() != Animation.Status.RUNNING
+                        && fillPercent.get() >= 0.9999) {
+                    // stop timeline and reset
+                    fillTimeline.stop();
+                    fillTimeline = null;
+                    
+                    double newStart = rng.nextDouble() * (2.0 / 3.0); // 0%..66% full
+                    fillPercent.set(newStart);
+                    
+                    // Optional: let Main know we've reset for a new transaction
+                    System.out.println(
+                            "Hose sending: flow-reset// (newStart=" + String.format("%.2f", newStart * 100) + "%)"
+                    );
+                    commManager.send(new Message("flow-reset//"));
                 }
             } else {
                 // Auto-start (or resume) when connected
