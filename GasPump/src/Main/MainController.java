@@ -17,7 +17,6 @@ public class MainController {
     private final CustomerManager customerManager;
     private final GasStationManager gasStationManager;
     private final PumpAssemblyManager pumpAssemblyManager;
-    private final ScreenManager screenManager;
     private final TimerManager timerManager;
 
     // --- FSM and Session State ---
@@ -34,13 +33,9 @@ public class MainController {
         this.customerManager = new CustomerManager();
         this.gasStationManager = new GasStationManager();
         this.pumpAssemblyManager = new PumpAssemblyManager();
-        this.screenManager = new ScreenManager();
         this.timerManager = new TimerManager();
     }
 
-    /**
-     * The main entry point for the entire Gas Pump application.
-     */
     public static void main(String[] args) {
         MainController controller = new MainController();
         controller.run();
@@ -53,13 +48,10 @@ public class MainController {
      */
     public void run() {
         System.out.println("Gas Pump Controller starting up...");
-        // The initial state as per the SRS diagram is OFF.
         currentState = PumpState.OFF;
 
         try {
-            // The main FSM loop
             while (true) {
-                // The logic for each state is handled in a separate method for clarity.
                 switch (currentState) {
                     case OFF -> handleOffState();
                     case STANDBY -> handleStandbyState();
@@ -74,7 +66,6 @@ public class MainController {
                     case TRANSACTION_COMPLETE ->
                             handleTransactionCompleteState();
                 }
-                // A brief pause to prevent the loop from consuming 100% CPU
                 Thread.sleep(100);
             }
         } catch (InterruptedException e) {
@@ -86,14 +77,11 @@ public class MainController {
             customerManager.close();
             gasStationManager.close();
             pumpAssemblyManager.close();
-            screenManager.close();
         }
     }
 
     private void handleOffState() {
-        screenManager.showMessage("Pump Unavailable");
-        // In a real system, we'd check for a signal from the gas station server.
-        // For simulation, we'll assume it's always "on" and move to STANDBY.
+        customerManager.showMessage("Pump Unavailable");
         currentState = PumpState.STANDBY;
     }
 
@@ -104,15 +92,12 @@ public class MainController {
             currentState = PumpState.IDLE;
         } else {
             System.err.println("Failed to fetch price list. Remaining in STANDBY.");
-            // In a real system, it would retry after a delay.
         }
     }
 
     private void handleIdleState() {
         resetSession();
-        screenManager.showWelcomeScreen();
-        // The waitForCardTap call is blocking, so we pass a very long timeout.
-        // The state won't advance until a card is tapped.
+        customerManager.showWelcomeScreen();
         String card = customerManager.waitForCardTap(Long.MAX_VALUE);
         if (card != null) {
             currentCardNumber = card;
@@ -121,7 +106,7 @@ public class MainController {
     }
 
     private void handleWaitingForAuthorizationState() {
-        screenManager.showAuthorizingScreen();
+        customerManager.showAuthorizingScreen();
         BankManager.AuthorizationStatus status = bankManager.authorizeCreditCard(currentCardNumber);
         customerManager.notifyCardReader(status == BankManager.AuthorizationStatus.APPROVED);
 
@@ -133,9 +118,9 @@ public class MainController {
     }
 
     private void handleNoAuthorizationState() {
-        screenManager.showMessage("Authorization Failed");
+        customerManager.showMessage("Authorization Failed");
         try {
-            Thread.sleep(5000); // Display message for 5 seconds
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -143,32 +128,34 @@ public class MainController {
     }
 
     private void handleSelectGasState() {
-        screenManager.showGradeSelectionScreen(availableFuelGrades);
+        customerManager.showGradeSelectionScreen(availableFuelGrades);
         timerManager.setTimer(15);
 
         while (!timerManager.isTimedOut()) {
-            String buttonId = screenManager.waitForButtonPress(100); // Poll for 100ms
+            String buttonId = customerManager.waitForButtonPress(100);
             if (buttonId != null) {
-                // Check if the pressed button corresponds to a fuel grade
-                int gradeIndex = Integer.parseInt(buttonId) - 2; // Assuming buttons 2, 3, 4 map to grades 0, 1, 2
-                if (gradeIndex >= 0 && gradeIndex < availableFuelGrades.size()) {
-                    selectedFuelGrade = availableFuelGrades.get(gradeIndex);
-                    timerManager.resetTimer();
-                    currentState = PumpState.READY_TO_PUMP;
-                    return;
-                } else if (buttonId.equals("8")) { // Cancel button
-                    timerManager.resetTimer();
-                    currentState = PumpState.IDLE;
-                    return;
+                try {
+                    int gradeIndex = Integer.parseInt(buttonId) - 2;
+                    if (gradeIndex >= 0 && gradeIndex < availableFuelGrades.size()) {
+                        selectedFuelGrade = availableFuelGrades.get(gradeIndex);
+                        timerManager.resetTimer();
+                        currentState = PumpState.READY_TO_PUMP;
+                        return;
+                    } else if (buttonId.equals("8")) { // Cancel button
+                        timerManager.resetTimer();
+                        currentState = PumpState.IDLE;
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignore non-numeric button IDs
                 }
             }
         }
-        // If the loop finishes, it means a timeout occurred
         currentState = PumpState.IDLE;
     }
 
     private void handleReadyToPumpState() {
-        screenManager.showMessage("Ready to Pump. Please remove nozzle from holster.");
+        customerManager.showMessage("Ready to Pump. Please remove nozzle from holster.");
         timerManager.setTimer(15);
         while (!timerManager.isTimedOut()) {
             PumpAssemblyManager.HoseEvent event = pumpAssemblyManager.getHoseEvent();
@@ -178,16 +165,14 @@ public class MainController {
                 return;
             }
         }
-        // If timeout occurs, go back to IDLE
         currentState = PumpState.IDLE;
     }
 
     private void handleFuelingState() {
         pumpAssemblyManager.startPumping(selectedFuelGrade);
-        screenManager.showPumpingScreen(selectedFuelGrade.name(), 0, 0);
+        customerManager.showPumpingScreen(selectedFuelGrade.name(), 0, 0);
 
         while (true) {
-            // Check for hose events first
             PumpAssemblyManager.HoseEvent hoseEvent = pumpAssemblyManager.getHoseEvent();
             if (hoseEvent == PumpAssemblyManager.HoseEvent.ATTACHED || hoseEvent == PumpAssemblyManager.HoseEvent.TANK_FULL) {
                 pumpAssemblyManager.stopPumping();
@@ -195,16 +180,14 @@ public class MainController {
                 return;
             }
 
-            // Check for fueling updates
             FuelingUpdate update = pumpAssemblyManager.getFuelingUpdate();
             if (update != null) {
                 gallonsDispensed = update.gallons();
                 totalCost = update.totalCost();
-                screenManager.showPumpingScreen(selectedFuelGrade.name(), gallonsDispensed, totalCost);
+                customerManager.showPumpingScreen(selectedFuelGrade.name(), gallonsDispensed, totalCost);
             }
 
-            // Check for stop button press
-            String buttonId = screenManager.waitForButtonPress(100);
+            String buttonId = customerManager.waitForButtonPress(100);
             if (buttonId != null && buttonId.equals("8")) { // Stop button
                 pumpAssemblyManager.stopPumping();
                 currentState = PumpState.TRANSACTION_COMPLETE;
@@ -214,8 +197,6 @@ public class MainController {
     }
 
     private void handlePausedState() {
-        // As per the SRS, this state would handle pausing and resuming.
-        // For this implementation, we simplify and go directly to completion.
         currentState = PumpState.TRANSACTION_COMPLETE;
     }
 
@@ -225,22 +206,19 @@ public class MainController {
 
         if (chargeSuccess) {
             gasStationManager.logTransaction(currentCardNumber, selectedFuelGrade, gallonsDispensed, totalCost);
-            screenManager.showThankYouScreen(gallonsDispensed, totalCost);
+            customerManager.showThankYouScreen(gallonsDispensed, totalCost);
         } else {
-            screenManager.showMessage("Final charge failed. Please see attendant.");
+            customerManager.showMessage("Final charge failed. Please see attendant.");
         }
 
         try {
-            Thread.sleep(10000); // Display final screen for 10 seconds
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         currentState = PumpState.IDLE;
     }
 
-    /**
-     * Resets all session-specific variables to their default state.
-     */
     private void resetSession() {
         currentCardNumber = null;
         selectedFuelGrade = null;
