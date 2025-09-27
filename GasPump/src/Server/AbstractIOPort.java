@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An abstract base class for a robust, two-way communication port.
@@ -15,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 abstract class AbstractIOPort {
 
-    private final BlockingQueue<Message> inQueue = new LinkedBlockingQueue<>();
+    private final AtomicReference<Message> latestMessage = new AtomicReference<>();
     private final BlockingQueue<Message> outQueue = new LinkedBlockingQueue<>();
 
     protected Socket socket;
@@ -51,11 +52,8 @@ abstract class AbstractIOPort {
         try {
             String line;
             while ((line = in.readLine()) != null) {
-                inQueue.put(Message.fromString(line));
+                latestMessage.set(Message.fromString(line));
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Preserve the interrupted status
-            System.err.println("Reader thread interrupted.");
         } catch (Exception e) {
             // This is expected when the connection is closed by either party.
             if (!isClosed()) {
@@ -94,23 +92,22 @@ abstract class AbstractIOPort {
     }
 
     /**
-     * Retrieves and removes the earliest received message from the queue.
-     * Returns null if no messages are currently present.
+     * Atomically retrieves the latest received message and clears it.
+     * This ensures that for high-frequency updates, only the most recent message is processed.
      *
-     * @return A Message object, or null if no message is available.
+     * @return The latest Message object, or null if no new message has arrived.
      */
     public Message get() {
-        return inQueue.poll();
+        return latestMessage.getAndSet(null);
     }
 
     /**
-     * Retrieves, but does not remove, the earliest received message.
-     * Returns null if no messages are present in the queue.
+     * Retrieves, but does not remove, the latest received message.
      *
-     * @return The Message object at the head of the queue, or null if empty.
+     * @return The latest Message object at the head of the queue, or null if empty.
      */
     public Message read() {
-        return inQueue.peek();
+        return latestMessage.get();
     }
 
     /**
