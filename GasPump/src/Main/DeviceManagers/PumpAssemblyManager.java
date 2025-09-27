@@ -15,7 +15,6 @@ public class PumpAssemblyManager {
     private final IOPort pumpConnection;
     private final IOPort flowMeterConnection;
     private final IOPort hoseConnection;
-
     /**
      * Initializes the manager and establishes connections to the pump, flow meter, and hose devices.
      */
@@ -27,21 +26,21 @@ public class PumpAssemblyManager {
 
     /**
      * Starts the fueling process.
-     * This method sends the command to turn on the pump motor and instructs the
-     * flow meter to begin measuring the dispensed fuel.
+     * The flow rate is fixed within the FlowMeter device as per the SRS.
+     * This method only needs to send the price and gas type.
      *
      * @param grade The selected {@link FuelGrade} to be dispensed.
      */
     public void startPumping(FuelGrade grade) {
         System.out.println("Pump Assembly: Starting pump for " + grade.name());
         pumpConnection.send(new Message("on"));
-        String startCommand = String.format("CMD:START ppg=%.2f gas=%s//", grade.pricePerGallon(), grade.name());
+        String startCommand = String.format("CMD:START ppg=%.2f gas=%s//",
+                grade.pricePerGallon(), grade.name());
         flowMeterConnection.send(new Message(startCommand));
     }
 
     /**
      * Stops the fueling process.
-     * Sends commands to turn off the pump motor and pause the flow meter.
      */
     public void stopPumping() {
         System.out.println("Pump Assembly: Stopping pump.");
@@ -50,8 +49,16 @@ public class PumpAssemblyManager {
     }
 
     /**
+     * Resets the flow meter's internal counters to zero.
+     * This should be called after a transaction is complete.
+     */
+    public void resetFlowMeter() {
+        System.out.println("Pump Assembly: Resetting flow meter.");
+        flowMeterConnection.send(new Message("CMD:RESET//"));
+    }
+
+    /**
      * Checks for and processes real-time updates from the flow meter.
-     * This is a non-blocking method that polls for new messages.
      *
      * @return A {@link FuelingUpdate} containing the latest gallons and total cost,
      * or {@code null} if no new update is available.
@@ -66,7 +73,6 @@ public class PumpAssemblyManager {
 
     /**
      * Checks for and processes events from the hose sensors.
-     * This is a non-blocking method that polls for new messages.
      *
      * @return A {@link HoseEvent} enum representing the latest event from the hose,
      * or {@code null} if no new event has occurred.
@@ -103,3 +109,4 @@ public class PumpAssemblyManager {
         TANK_FULL // Vehicle tank is full
     }
 }
+

@@ -211,6 +211,9 @@ public class MainController {
             customerManager.showMessage("Final charge failed. Please see attendant.");
         }
 
+        // Reset the flow meter for the next customer.
+        pumpAssemblyManager.resetFlowMeter();
+
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
