@@ -23,6 +23,7 @@ import javafx.util.Duration;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.Objects;
 
 /**
  * Simulates a physical card reader device. It runs as a JavaFX application
@@ -95,19 +96,17 @@ public class CardReader extends Application {
         innerRect.setArcHeight(30);
 
         // Load tapHere image
-        ImageView imageView = new ImageView();
-        try {
-            File file = new File("resources/tapHere.png");
-            String localUrl = file.toURI().toURL().toString();
-            Image img = new Image(localUrl);
-            imageView.setImage(img);
-        } catch (MalformedURLException e) {
-            System.err.println("Error loading tapHere.png: " + e.getMessage());
-        }
-
-        imageView.setFitWidth(180);
-        imageView.setFitHeight(180);
-        imageView.setPreserveRatio(true);
+        ImageView tapIcon = new ImageView(
+                new Image(
+                        Objects.requireNonNull(CardReader.class.getResource("/tapHere.png"),
+                                "Missing resource: /tapHere.png"
+                        ).toExternalForm()
+                )
+        );
+        
+        tapIcon.setFitWidth(180);
+        tapIcon.setFitHeight(180);
+        tapIcon.setPreserveRatio(true);
 
         // Side Panel
         Button payButton = new Button("(Simulate Card Tap)");
@@ -121,7 +120,7 @@ public class CardReader extends Application {
 
         // Main layout
         BorderPane root = new BorderPane();
-        StackPane stack = new StackPane(outerRect, innerRect, imageView);
+        StackPane stack = new StackPane(outerRect, innerRect, tapIcon);
         root.setCenter(stack);
         root.setRight(buttonBox);
         return root;
