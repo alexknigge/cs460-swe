@@ -155,11 +155,11 @@ public class MainController {
     }
 
     private void handleReadyToPumpState() {
-        customerManager.showMessage("Ready to Pump. Please remove nozzle from holster.");
+        customerManager.showMessage("Ready to Pump. Please connect nozzle.");
         timerManager.setTimer(15);
         while (!timerManager.isTimedOut()) {
             PumpAssemblyManager.HoseEvent event = pumpAssemblyManager.getHoseEvent();
-            if (event == PumpAssemblyManager.HoseEvent.REMOVED) {
+            if (event == PumpAssemblyManager.HoseEvent.ATTACHED) {
                 timerManager.resetTimer();
                 currentState = PumpState.FUELING;
                 return;
@@ -180,7 +180,7 @@ public class MainController {
                 currentState = PumpState.TRANSACTION_COMPLETE;
                 return;
             }
-            if (hoseEvent == PumpAssemblyManager.HoseEvent.ATTACHED) {
+            if (hoseEvent == PumpAssemblyManager.HoseEvent.REMOVED) {
                 currentState = PumpState.PAUSED;
                 return;
             }
@@ -209,7 +209,7 @@ public class MainController {
         while (!timerManager.isTimedOut()) {
             PumpAssemblyManager.HoseEvent evt = pumpAssemblyManager.getHoseEvent();
 
-            if (evt == PumpAssemblyManager.HoseEvent.REMOVED) {
+            if (evt == PumpAssemblyManager.HoseEvent.ATTACHED) {
                 currentState = PumpState.FUELING;
                 return;
             }

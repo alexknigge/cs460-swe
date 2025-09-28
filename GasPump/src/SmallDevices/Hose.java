@@ -152,7 +152,7 @@ public class Hose extends Application {
             latch.setStroke(connected ? Color.LIMEGREEN : Color.RED);
             
             // Notify main controller
-            String message = connected ? "removed//" : "attached//";
+            String message = connected ? "attached//" : "removed//";
             System.out.println("Hose sending: " + message);
             commManager.send(new Message(message));
             
