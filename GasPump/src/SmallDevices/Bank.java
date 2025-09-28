@@ -107,7 +107,7 @@ public class Bank {
 
             StackPane root = new StackPane(rect, vbox);
             root.setPadding(new Insets(16));
-            Scene scene = new Scene(root, 420, 180);
+            Scene scene = new Scene(root, 500, 200);
 
             // AnimationTimer to update status label continuously
             AnimationTimer timer = new AnimationTimer() {
