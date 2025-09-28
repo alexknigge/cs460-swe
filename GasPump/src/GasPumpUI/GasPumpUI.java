@@ -6,6 +6,7 @@ import Server.Message;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -42,6 +43,7 @@ public class GasPumpUI extends Application {
 
         primaryStage.setTitle("Gas Pump UI Mockup");
         gridPane = createGridPane();
+        gridPane.setPadding(new Insets(10,10,10,10));
         Scene scene = new Scene(gridPane, 500, 600);
         primaryStage.setScene(scene);
         primaryStage.show();

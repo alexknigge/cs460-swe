@@ -209,7 +209,7 @@ public class FlowMeter {
             root.getChildren().addAll(statusLabel, pipePane, new HBox(8, gallonsLabel), new HBox(8, totalLabel), new HBox(8, gasTypeLabel), new HBox(8, rateLabel));
 
             stage.setTitle("FlowMeter Status");
-            stage.setScene(new Scene(root, 420, 200));
+            stage.setScene(new Scene(root, 420, 230));
             stage.show();
             setupAnimationTimer(statusLabel, gallonsLabel, totalLabel, gasTypeLabel, rateLabel, pipeFlow);
         }

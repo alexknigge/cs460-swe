@@ -57,7 +57,7 @@ public class CardReader extends Application {
 
         // Create and display the UI
         BorderPane root = createUI();
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root, 500, 250);
         primaryStage.setTitle("Card Reader UI Mockup");
         primaryStage.setScene(scene);
         primaryStage.show();

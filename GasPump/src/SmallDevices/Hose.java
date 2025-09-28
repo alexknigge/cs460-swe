@@ -130,7 +130,7 @@ public class Hose extends Application {
         root.setCenter(hoseAndLatchBox);
         root.setBottom(bottomBox);
         root.setRight(tankBox);
-        Scene scene = new Scene(root, 600, 360);
+        Scene scene = new Scene(root, 450, 250);
         primaryStage.setTitle("Gas Hose Mockup");
         primaryStage.setScene(scene);
         primaryStage.show();
