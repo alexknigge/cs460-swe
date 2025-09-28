@@ -37,6 +37,7 @@ public class PumpAssemblyManager {
         String startCommand = String.format("CMD:START ppg=%.2f gas=%s//",
                 grade.pricePerGallon(), grade.name());
         flowMeterConnection.send(new Message(startCommand));
+        hoseConnection.send(new Message("CMD:FUELING:START//"));
     }
 
     /**
@@ -46,6 +47,7 @@ public class PumpAssemblyManager {
         System.out.println("Pump Assembly: Stopping pump.");
         pumpConnection.send(new Message("off"));
         flowMeterConnection.send(new Message("CMD:PAUSE//"));
+        hoseConnection.send(new Message("CMD:FUELING:STOP//"));
     }
 
     /**
