@@ -92,6 +92,17 @@ public class PumpAssemblyManager {
         }
         return null;
     }
+    
+    /**
+     * Pauses fueling without resetting totals.
+     * Turns the pump motor off, pauses the flow meter, and asks the hose UI to pause.
+     */
+    public void pausePumping() {
+        System.out.println("Pump Assembly: Pausing pump.");
+        pumpConnection.send(new Message("off"));
+        flowMeterConnection.send(new Message("CMD:PAUSE//"));
+        hoseConnection.send(new Message("CMD:FUELING:PAUSE//"));
+    }
 
     /**
      * Closes connections to all pump assembly devices.

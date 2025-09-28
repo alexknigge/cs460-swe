@@ -174,9 +174,14 @@ public class MainController {
 
         while (true) {
             PumpAssemblyManager.HoseEvent hoseEvent = pumpAssemblyManager.getHoseEvent();
-            if (hoseEvent == PumpAssemblyManager.HoseEvent.ATTACHED || hoseEvent == PumpAssemblyManager.HoseEvent.TANK_FULL) {
+            
+            if (hoseEvent == PumpAssemblyManager.HoseEvent.TANK_FULL) {
                 pumpAssemblyManager.stopPumping();
                 currentState = PumpState.TRANSACTION_COMPLETE;
+                return;
+            }
+            if (hoseEvent == PumpAssemblyManager.HoseEvent.ATTACHED) {
+                currentState = PumpState.PAUSED;
                 return;
             }
 
@@ -197,6 +202,23 @@ public class MainController {
     }
 
     private void handlePausedState() {
+        pumpAssemblyManager.pausePumping();
+        customerManager.showMessage("Fueling paused — reconnect within 15 seconds");
+        timerManager.setTimer(15);
+        
+        while (!timerManager.isTimedOut()) {
+            PumpAssemblyManager.HoseEvent evt = pumpAssemblyManager.getHoseEvent();
+
+            if (evt == PumpAssemblyManager.HoseEvent.REMOVED) {
+                currentState = PumpState.FUELING;
+                return;
+            }
+            
+            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+        }
+        
+        // Timeout: end the transaction with the partial amount
+        pumpAssemblyManager.stopPumping();
         currentState = PumpState.TRANSACTION_COMPLETE;
     }
 

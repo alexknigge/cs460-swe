@@ -79,14 +79,20 @@ public class Hose extends Application {
         // Animation components:
         DoubleProperty fillPercent = new SimpleDoubleProperty(new Random().nextDouble() * (2.0 / 3.0));
         AnimationTimer commandPoller = new AnimationTimer() {
-            @Override public void handle(long now) {
+            @Override
+            public void handle(long now) {
                 Message m = commManager.get();
                 if (m == null) return;
-                String cmd = m.getContent() == null ? "" : m.getContent().trim();
+                String cmd = (m == null ? "" : m.getContent().trim());
                 
                 if ("CMD:FUELING:START//".equals(cmd)) {
                     systemFueling = true;
                     if (connected) tryStartOrResume(fillPercent);
+                } else if ("CMD:FUELING:PAUSE//".equals(cmd)) {
+                    systemFueling = false;
+                    if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING) {
+                        fillTimeline.pause();
+                    }
                 } else if ("CMD:FUELING:STOP//".equals(cmd)) {
                     systemFueling = false;
                     if (fillTimeline != null && fillTimeline.getStatus() == Animation.Status.RUNNING) {
