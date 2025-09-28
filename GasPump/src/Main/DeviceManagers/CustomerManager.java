@@ -130,7 +130,7 @@ public class CustomerManager {
                 "t:3/s:3/f:2/c:0/" + GALS_FORMAT.format(gallons) + " gal;" +
                 "t:4/s:2/f:1/c:0/Total Cost:;" +
                 "t:5/s:3/f:2/c:0/" + PRICE_FORMAT.format(total) + ";" +
-                "t:8/s:1/f:1/c:2/Stop;b:8/x;" + CMD_TERMINATOR;
+                "t:8/s:1/f:1/c:2/Pause;b:8/x;" + CMD_TERMINATOR;
         sendToScreen(message);
     }
 

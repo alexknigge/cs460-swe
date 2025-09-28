@@ -194,8 +194,7 @@ public class MainController {
 
             String buttonId = customerManager.waitForButtonPress(100);
             if (buttonId != null && buttonId.equals("8")) { // Stop button
-                pumpAssemblyManager.stopPumping();
-                currentState = PumpState.TRANSACTION_COMPLETE;
+                currentState = PumpState.PAUSED;
                 return;
             }
         }
